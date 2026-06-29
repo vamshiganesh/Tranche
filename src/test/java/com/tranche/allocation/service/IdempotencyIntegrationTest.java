@@ -12,6 +12,7 @@ import com.tranche.common.domain.Role;
 import com.tranche.common.security.UserPrincipal;
 import com.tranche.investor.domain.InvestorProfile;
 import com.tranche.investor.repository.InvestorProfileRepository;
+import com.tranche.issuer.domain.Issuer;
 import com.tranche.issuer.repository.IssuerRepository;
 import com.tranche.notification.repository.OutboxEventRepository;
 import com.tranche.opportunity.domain.Opportunity;
