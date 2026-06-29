@@ -189,8 +189,8 @@ The unique key is **per investor**, not global. Two different investors may coin
 |---|---|---|---|
 | Platform Admin | `admin@tranche.local` | ADMIN | Not registerable via API |
 | Acme Issuer | `issuer@tranche.local` | ISSUER | Linked to Acme Corp issuer profile |
-| Jane Investor | `investor1@tranche.local` | INVESTOR | $500,000 wallet |
-| John Investor | `investor2@tranche.local` | INVESTOR | $500,000 wallet |
+| Jane Investor | `investor1@tranche.local` | INVESTOR | $3,000,000 wallet |
+| John Investor | `investor2@tranche.local` | INVESTOR | $3,000,000 wallet |
 
 Password for all: `Password123!`
 
@@ -203,9 +203,12 @@ Fixed `public_id` UUIDs (prefix `a0000000-...`) for reproducible demos and docum
 | Version | File | Purpose |
 |---|---|---|
 | V1 | `V1__init_schema.sql` | Full schema, indexes, constraints |
-| V2 | `V2__seed_reference_data.sql` | Demo users, issuer, investor profiles |
+| V2 | `V2__seed_reference_data.sql` | Demo users, issuer, investor profiles ($3M wallets) |
+| V3 | `V3__seed_demo_opportunity.sql` | Demo opportunity in DRAFT |
+| V4 | `V4__increase_demo_wallet_balances.sql` | Wallet bump for existing DBs (idempotent) |
+| V5 | `V5__outbox_created_at_index.sql` | Admin outbox list ordering |
 
-No `opportunity_tranches` table in V1 — single-tranche opportunities are sufficient for MVP. A future `V3` can add tranches if invoice splitting is required.
+No `opportunity_tranches` table — single-tranche opportunities are sufficient for MVP.
 
 ---
 

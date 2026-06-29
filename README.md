@@ -166,6 +166,8 @@ All passwords: **`Password123!`**. Each investor wallet is seeded with **$3,000,
 
 A demo opportunity (**Acme Q1 Receivables — Invoice #INV-2026-0142**) is seeded in `DRAFT` for the full lifecycle walkthrough.
 
+Load API tokens in any terminal: `source scripts/demo-env.sh`
+
 ### Tests
 
 Integration tests spin up **MariaDB + Redis via Testcontainers** — no manual `tranche_test` setup required:
@@ -203,6 +205,7 @@ Summary:
 | [docs/audit-and-outbox.md](docs/audit-and-outbox.md) | Audit query APIs and outbox poller |
 | [docs/non-functional-design.md](docs/non-functional-design.md) | Errors, validation, rate limits, caching, RBAC |
 | [docs/demo-flow.md](docs/demo-flow.md) | End-to-end demo with curl examples |
+| [docs/final-review-notes.md](docs/final-review-notes.md) | Strengths, tradeoffs, interview focus, production TODOs |
 
 ---
 
