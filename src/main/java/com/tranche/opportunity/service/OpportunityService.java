@@ -82,7 +82,7 @@ public class OpportunityService {
     @Transactional
     @Caching(evict = {
             @CacheEvict(cacheNames = OpportunityCacheNames.LIVE_LISTINGS, allEntries = true),
-            @CacheEvict(cacheNames = OpportunityCacheNames.DETAIL, key = "'v4:' + #id")
+            @CacheEvict(cacheNames = OpportunityCacheNames.DETAIL, key = "#id")
     })
     public OpportunityResponse update(Long id, UpdateOpportunityRequest request, UserPrincipal principal) {
         Opportunity opportunity = findOwnedOrAdmin(id, principal);
@@ -130,7 +130,7 @@ public class OpportunityService {
     @Transactional
     @Caching(evict = {
             @CacheEvict(cacheNames = OpportunityCacheNames.LIVE_LISTINGS, allEntries = true),
-            @CacheEvict(cacheNames = OpportunityCacheNames.DETAIL, key = "'v4:' + #id")
+            @CacheEvict(cacheNames = OpportunityCacheNames.DETAIL, key = "#id")
     })
     public OpportunityStatusResponse submitForReview(Long id, UserPrincipal principal) {
         Opportunity opportunity = findOwnedByIssuer(id, principal);
@@ -141,7 +141,7 @@ public class OpportunityService {
     @Transactional
     @Caching(evict = {
             @CacheEvict(cacheNames = OpportunityCacheNames.LIVE_LISTINGS, allEntries = true),
-            @CacheEvict(cacheNames = OpportunityCacheNames.DETAIL, key = "'v4:' + #id")
+            @CacheEvict(cacheNames = OpportunityCacheNames.DETAIL, key = "#id")
     })
     public OpportunityStatusResponse review(Long id, ReviewOpportunityRequest request) {
         Opportunity opportunity = findById(id);
@@ -159,7 +159,7 @@ public class OpportunityService {
     @Transactional
     @Caching(evict = {
             @CacheEvict(cacheNames = OpportunityCacheNames.LIVE_LISTINGS, allEntries = true),
-            @CacheEvict(cacheNames = OpportunityCacheNames.DETAIL, key = "'v4:' + #id")
+            @CacheEvict(cacheNames = OpportunityCacheNames.DETAIL, key = "#id")
     })
     public OpportunityStatusResponse publish(Long id) {
         Opportunity opportunity = findById(id);
@@ -175,7 +175,7 @@ public class OpportunityService {
     @Transactional
     @Caching(evict = {
             @CacheEvict(cacheNames = OpportunityCacheNames.LIVE_LISTINGS, allEntries = true),
-            @CacheEvict(cacheNames = OpportunityCacheNames.DETAIL, key = "'v4:' + #id")
+            @CacheEvict(cacheNames = OpportunityCacheNames.DETAIL, key = "#id")
     })
     public OpportunityStatusResponse adminTransition(Long id, AdminTransitionRequest request) {
         if (!ADMIN_TRANSITION_TARGETS.contains(request.targetStatus())) {
@@ -203,7 +203,7 @@ public class OpportunityService {
     @Cacheable(
             cacheNames = OpportunityCacheNames.LIVE_LISTINGS,
             condition = "#status == T(com.tranche.opportunity.domain.OpportunityStatus).LIVE",
-            key = "'v4:' + #riskGrade + ':' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort"
+            key = "#riskGrade + ':' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort"
     )
     public PageResponse<OpportunitySummaryResponse> list(
             OpportunityStatus status,
@@ -218,7 +218,7 @@ public class OpportunityService {
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(cacheNames = OpportunityCacheNames.DETAIL, key = "'v4:' + #id")
+    @Cacheable(cacheNames = OpportunityCacheNames.DETAIL, key = "#id")
     public OpportunityResponse getById(Long id) {
         return OpportunityMapper.toResponse(findById(id));
     }
