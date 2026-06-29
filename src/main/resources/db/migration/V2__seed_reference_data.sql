@@ -28,5 +28,5 @@ VALUES (@issuer_user_id, 'Acme Corp', 'REG-12345');
 
 INSERT INTO investor_profiles (user_id, wallet_balance, locked_balance, currency)
 VALUES
-    (@investor1_user_id, 500000.0000, 0.0000, 'USD'),
-    (@investor2_user_id, 500000.0000, 0.0000, 'USD');
+    (@investor1_user_id, 3000000.0000, 0.0000, 'USD'),
+    (@investor2_user_id, 3000000.0000, 0.0000, 'USD');
