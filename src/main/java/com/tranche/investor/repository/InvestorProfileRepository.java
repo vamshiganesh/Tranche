@@ -8,9 +8,9 @@ import java.util.UUID;
 
 public interface InvestorProfileRepository extends JpaRepository<InvestorProfile, Long> {
 
-    Optional<InvestorProfile> findByUserId(Long userId);
+    Optional<InvestorProfile> findByUser_Id(Long userId);
 
     Optional<InvestorProfile> findByUser_PublicId(UUID publicId);
 
-    boolean existsByUserId(Long userId);
+    boolean existsByUser_Id(Long userId);
 }

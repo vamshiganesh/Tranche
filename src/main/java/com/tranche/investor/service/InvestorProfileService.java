@@ -26,7 +26,7 @@ public class InvestorProfileService {
 
     @Transactional
     public InvestorProfile createForUser(User user) {
-        if (investorProfileRepository.existsByUserId(user.getId())) {
+        if (investorProfileRepository.existsByUser_Id(user.getId())) {
             throw new ConflictException("Investor profile already exists");
         }
 

@@ -34,7 +34,7 @@ public class IssuerProfileService {
         if (user.getRole() != Role.ISSUER) {
             throw new ForbiddenException("Only issuer accounts can create an issuer profile");
         }
-        if (issuerRepository.existsByUserId(user.getId())) {
+        if (issuerRepository.existsByUser_Id(user.getId())) {
             throw new ConflictException("Issuer profile already exists");
         }
 

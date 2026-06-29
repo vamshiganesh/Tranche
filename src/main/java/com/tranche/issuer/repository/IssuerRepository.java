@@ -8,9 +8,9 @@ import java.util.UUID;
 
 public interface IssuerRepository extends JpaRepository<Issuer, Long> {
 
-    Optional<Issuer> findByUserId(Long userId);
+    Optional<Issuer> findByUser_Id(Long userId);
 
     Optional<Issuer> findByUser_PublicId(UUID publicId);
 
-    boolean existsByUserId(Long userId);
+    boolean existsByUser_Id(Long userId);
 }

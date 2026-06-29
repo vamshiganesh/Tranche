@@ -100,7 +100,7 @@ public class AuthService {
         User user = userRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        return investorProfileRepository.findByUserId(user.getId())
+        return investorProfileRepository.findByUser_Id(user.getId())
                 .map(profile -> UserMapper.toCurrentUserResponse(user, profile))
                 .orElseGet(() -> UserMapper.toCurrentUserResponse(user, null));
     }
