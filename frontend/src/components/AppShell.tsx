@@ -12,6 +12,7 @@ const issuerLinks = [
   { to: '/issuer/new', label: 'New opportunity' },
 ]
 
+
 const adminLinks = [
   { to: '/admin', label: 'Review queue' },
   { to: '/admin/opportunities', label: 'All opportunities' },
