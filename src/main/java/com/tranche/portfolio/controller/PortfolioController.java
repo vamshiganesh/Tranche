@@ -1,7 +1,6 @@
 package com.tranche.portfolio.controller;
 
 import com.tranche.common.security.SecurityUtils;
-import com.tranche.common.security.UserPrincipal;
 import com.tranche.portfolio.dto.PortfolioPositionDetail;
 import com.tranche.portfolio.dto.PortfolioResponse;
 import com.tranche.portfolio.service.PortfolioService;
@@ -24,16 +23,12 @@ public class PortfolioController {
     @GetMapping
     @PreAuthorize("hasRole('INVESTOR')")
     public PortfolioResponse getPortfolio() {
-        return portfolioService.getPortfolio(currentUser());
+        return portfolioService.getPortfolio(SecurityUtils.requireCurrentUser());
     }
 
     @GetMapping("/positions/{positionId}")
     @PreAuthorize("hasRole('INVESTOR')")
     public PortfolioPositionDetail getPosition(@PathVariable Long positionId) {
-        return portfolioService.getPosition(positionId, currentUser());
-    }
-
-    private UserPrincipal currentUser() {
-        return SecurityUtils.requireCurrentUser();
+        return portfolioService.getPosition(positionId, SecurityUtils.requireCurrentUser());
     }
 }

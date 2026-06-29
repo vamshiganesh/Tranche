@@ -2,7 +2,6 @@ package com.tranche.opportunity.controller;
 
 import com.tranche.common.dto.PageResponse;
 import com.tranche.common.security.SecurityUtils;
-import com.tranche.common.security.UserPrincipal;
 import com.tranche.opportunity.domain.OpportunityStatus;
 import com.tranche.opportunity.domain.RiskGrade;
 import com.tranche.opportunity.dto.AdminTransitionRequest;
@@ -58,7 +57,7 @@ public class OpportunityController {
     @PostMapping("/{id}/submit")
     @PreAuthorize("hasRole('ISSUER')")
     public OpportunityStatusResponse submit(@PathVariable Long id) {
-        return opportunityService.submitForReview(id, currentUser());
+        return opportunityService.submitForReview(id, SecurityUtils.requireCurrentUser());
     }
 
     @PostMapping("/{id}/review")
@@ -99,9 +98,5 @@ public class OpportunityController {
     @PreAuthorize("isAuthenticated()")
     public OpportunityResponse getById(@PathVariable Long id) {
         return opportunityService.getById(id);
-    }
-
-    private UserPrincipal currentUser() {
-        return SecurityUtils.requireCurrentUser();
     }
 }

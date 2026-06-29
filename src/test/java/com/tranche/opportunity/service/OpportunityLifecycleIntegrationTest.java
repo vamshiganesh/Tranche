@@ -1,6 +1,7 @@
 package com.tranche.opportunity.service;
 
 import com.tranche.audit.repository.AuditLogRepository;
+import com.tranche.audit.domain.AuditEntityTypes;
 import com.tranche.allocation.dto.CommitmentRequest;
 import com.tranche.allocation.service.AllocationEngine;
 import org.springframework.data.domain.Pageable;
@@ -111,8 +112,8 @@ class OpportunityLifecycleIntegrationTest extends AbstractIntegrationTest {
             assertThat(settled.status()).isEqualTo(OpportunityStatus.SETTLED);
         });
 
-        assertThat(auditLogRepository.findByEntityTypeAndEntityIdOrderByCreatedAtAsc(
-                "Opportunity", opportunityId, Pageable.unpaged()).getContent())
+        assertThat(auditLogRepository.findTimelineByEntity(
+                AuditEntityTypes.OPPORTUNITY, opportunityId))
                 .isNotEmpty();
     }
 

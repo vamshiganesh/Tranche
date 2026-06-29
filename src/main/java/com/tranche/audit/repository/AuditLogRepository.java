@@ -12,12 +12,6 @@ import java.util.List;
 
 public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
 
-    Page<AuditLog> findByEntityTypeAndEntityIdOrderByCreatedAtAsc(
-            String entityType,
-            Long entityId,
-            Pageable pageable
-    );
-
     @Query("""
             SELECT a FROM AuditLog a
             LEFT JOIN FETCH a.actor

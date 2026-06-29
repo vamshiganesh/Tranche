@@ -5,7 +5,6 @@ import com.tranche.allocation.dto.CommitmentResponse;
 import com.tranche.allocation.dto.CommitmentResult;
 import com.tranche.allocation.service.CommitmentService;
 import com.tranche.common.security.SecurityUtils;
-import com.tranche.common.security.UserPrincipal;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import org.springframework.http.HttpStatus;
@@ -41,13 +40,9 @@ public class AllocationController {
                 id,
                 idempotencyKey,
                 request,
-                currentUser()
+                SecurityUtils.requireCurrentUser()
         );
         HttpStatus status = result.replay() ? HttpStatus.OK : HttpStatus.CREATED;
         return ResponseEntity.status(status).body(result.response());
-    }
-
-    private UserPrincipal currentUser() {
-        return SecurityUtils.requireCurrentUser();
     }
 }
