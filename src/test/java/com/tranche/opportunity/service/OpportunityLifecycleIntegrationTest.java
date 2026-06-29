@@ -1,5 +1,6 @@
 package com.tranche.opportunity.service;
 
+import com.tranche.audit.repository.AuditLogRepository;
 import com.tranche.allocation.dto.CommitmentRequest;
 import com.tranche.allocation.service.AllocationEngine;
 import org.springframework.data.domain.Pageable;

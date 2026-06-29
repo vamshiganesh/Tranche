@@ -93,7 +93,9 @@ public abstract class AbstractIntegrationTest {
         investmentOrderRepository.deleteAll();
         auditLogRepository.deleteAll();
         outboxEventRepository.deleteAll();
-        opportunityRepository.deleteAll();
+        opportunityRepository.findAll().stream()
+                .filter(opportunity -> !SeedUsers.DEMO_OPPORTUNITY_TITLE.equals(opportunity.getTitle()))
+                .forEach(opportunityRepository::delete);
     }
 
     protected User requireUser(String email) {
