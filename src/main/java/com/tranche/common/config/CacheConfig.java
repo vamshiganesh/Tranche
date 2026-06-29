@@ -21,12 +21,13 @@ public class CacheConfig {
     @Bean
     public RedisCacheManager cacheManager(
             RedisConnectionFactory connectionFactory,
+            GenericJackson2JsonRedisSerializer redisJsonSerializer,
             @Value("${tranche.cache.opportunity-list-ttl:60s}") Duration opportunityListTtl,
             @Value("${tranche.cache.opportunity-detail-ttl:30s}") Duration opportunityDetailTtl
     ) {
         RedisCacheConfiguration defaults = RedisCacheConfiguration.defaultCacheConfig()
                 .serializeValuesWith(RedisSerializationContext.SerializationPair
-                        .fromSerializer(new GenericJackson2JsonRedisSerializer()));
+                        .fromSerializer(redisJsonSerializer));
 
         Map<String, RedisCacheConfiguration> cacheConfigurations = Map.of(
                 OpportunityCacheNames.LIVE_LISTINGS,
