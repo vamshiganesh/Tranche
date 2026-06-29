@@ -46,3 +46,11 @@ public class IssuerProfileService {
 
         return IssuerMapper.toResponse(issuer);
     }
+
+    @Transactional(readOnly = true)
+    public IssuerProfileResponse getProfile(UUID userPublicId) {
+        Issuer issuer = issuerRepository.findByUser_PublicId(userPublicId)
+                .orElseThrow(() -> new ResourceNotFoundException("Issuer profile not found"));
+        return IssuerMapper.toResponse(issuer);
+    }
+}
