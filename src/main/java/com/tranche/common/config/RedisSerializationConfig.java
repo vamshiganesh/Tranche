@@ -13,7 +13,7 @@ import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSeriali
 public class RedisSerializationConfig {
 
     @Bean
-    public ObjectMapper redisObjectMapper() {
+    public GenericJackson2JsonRedisSerializer redisJsonSerializer() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
@@ -22,11 +22,6 @@ public class RedisSerializationConfig {
                 ObjectMapper.DefaultTyping.NON_FINAL,
                 JsonTypeInfo.As.PROPERTY
         );
-        return mapper;
-    }
-
-    @Bean
-    public GenericJackson2JsonRedisSerializer redisJsonSerializer(ObjectMapper redisObjectMapper) {
-        return new GenericJackson2JsonRedisSerializer(redisObjectMapper);
+        return new GenericJackson2JsonRedisSerializer(mapper);
     }
 }
