@@ -124,7 +124,7 @@ Every status transition and money-affecting action produces an immutable `audit_
 
 - Java 21
 - Docker (for Testcontainers tests and local MariaDB/Redis)
-- Maven 3.9+ (or use `./mvnw`)
+- Maven 3.9+ (or use the Maven wrapper if added)
 
 ### Quick Start
 
@@ -133,7 +133,7 @@ Every status transition and money-affecting action produces an immutable `audit_
 docker compose up -d
 
 # 2. Run the API (Flyway migrations + seed data apply on startup)
-./mvnw spring-boot:run
+mvn spring-boot:run
 
 # 3. Health check
 curl -s http://localhost:8080/actuator/health | jq
@@ -171,7 +171,7 @@ A demo opportunity (**Acme Q1 Receivables — Invoice #INV-2026-0142**) is seede
 Integration tests spin up **MariaDB + Redis via Testcontainers** — no manual `tranche_test` setup required:
 
 ```bash
-./mvnw test
+mvn test
 ```
 
 Tests are skipped automatically when Docker is unavailable (`disabledWithoutDocker`).

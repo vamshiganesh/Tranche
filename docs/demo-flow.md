@@ -18,7 +18,7 @@ Base URL: `http://localhost:8080`
 ```bash
 cd Tranche
 docker compose up -d          # MariaDB + Redis
-./mvnw spring-boot:run        # API on :8080
+mvn spring-boot:run        # API on :8080
 ```
 
 Optional full stack (app in Docker):
@@ -229,7 +229,7 @@ curl -s -X POST "http://localhost:8080/api/v1/admin/outbox/poll" \
 Tests use **Testcontainers** (MariaDB + Redis). Docker must be available:
 
 ```bash
-./mvnw test
+mvn test
 ```
 
 Key integration suites:
