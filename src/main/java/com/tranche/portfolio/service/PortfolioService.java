@@ -144,7 +144,7 @@ public class PortfolioService {
                     AuditActions.PORTFOLIO_POSITION_SETTLED,
                     "PortfolioPosition",
                     position.getId(),
-                    Map.of("status", before.name(), "realizedYield", (Object) null),
+                    Map.of("status", before.name()),
                     Map.of(
                             "status", PortfolioStatus.SETTLED.name(),
                             "realizedYield", realizedYield,
