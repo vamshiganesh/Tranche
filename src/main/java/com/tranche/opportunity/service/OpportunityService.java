@@ -1,12 +1,21 @@
 package com.tranche.opportunity.service;
 
+import com.tranche.audit.domain.AuditActions;
+import com.tranche.audit.domain.AuditActorRole;
+import com.tranche.audit.service.AuditService;
+import com.tranche.auth.domain.User;
+import com.tranche.auth.repository.UserRepository;
 import com.tranche.common.domain.Role;
 import com.tranche.common.dto.PageResponse;
 import com.tranche.common.exception.BusinessException;
 import com.tranche.common.exception.ErrorCode;
 import com.tranche.common.exception.ForbiddenException;
 import com.tranche.common.exception.ResourceNotFoundException;
+import com.tranche.common.security.SecurityUtils;
 import com.tranche.common.security.UserPrincipal;
+import com.tranche.notification.domain.OutboxEventType;
+import com.tranche.notification.service.OutboxWriter;
+import com.tranche.portfolio.service.PortfolioService;
 import com.tranche.issuer.domain.Issuer;
 import com.tranche.issuer.repository.IssuerRepository;
 import com.tranche.opportunity.domain.Opportunity;
@@ -35,6 +44,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.Map;
 import java.util.Set;
 
 @Service
