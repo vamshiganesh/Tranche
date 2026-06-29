@@ -38,7 +38,7 @@ public class InvestorProfile {
     @Column(name = "locked_balance", nullable = false, precision = 19, scale = 4)
     private BigDecimal lockedBalance;
 
-    @Column(nullable = false, length = 3)
+    @Column(nullable = false, length = 3, columnDefinition = "CHAR(3)")
     private String currency;
 
     @CreatedDate
