@@ -44,7 +44,8 @@ class AllocationCalculatorTest {
 
     @Test
     void rejectsPartialBelowMinimumLot() {
-        var decision = AllocationCalculator.computeFill(10, 1, UNIT_PRICE, MINIMUM_LOT);
+        BigDecimal smallUnitPrice = new BigDecimal("5000.0000");
+        var decision = AllocationCalculator.computeFill(10, 1, smallUnitPrice, MINIMUM_LOT);
 
         assertThat(decision.rejected()).isTrue();
         assertThat(decision.rejectionCode()).isEqualTo(ErrorCode.BELOW_MINIMUM_LOT);

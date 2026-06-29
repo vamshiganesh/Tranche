@@ -3,6 +3,7 @@ package com.tranche.allocation.service;
 import com.tranche.allocation.dto.CommitmentRequest;
 import com.tranche.allocation.dto.CommitmentResult;
 import com.tranche.allocation.repository.AllocationRepository;
+import com.tranche.portfolio.repository.PortfolioPositionRepository;
 import com.tranche.allocation.repository.InvestmentOrderRepository;
 import com.tranche.audit.repository.AuditLogRepository;
 import com.tranche.auth.domain.User;
@@ -45,6 +46,9 @@ class IdempotencyIntegrationTest extends AbstractIntegrationTest {
     private InvestmentOrderRepository investmentOrderRepository;
 
     @Autowired
+    private PortfolioPositionRepository portfolioPositionRepository;
+
+    @Autowired
     private AllocationRepository allocationRepository;
 
     @Autowired
@@ -59,8 +63,9 @@ class IdempotencyIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        investmentOrderRepository.deleteAll();
+        portfolioPositionRepository.deleteAll();
         allocationRepository.deleteAll();
+        investmentOrderRepository.deleteAll();
         auditLogRepository.deleteAll();
         outboxEventRepository.deleteAll();
         opportunityRepository.deleteAll();

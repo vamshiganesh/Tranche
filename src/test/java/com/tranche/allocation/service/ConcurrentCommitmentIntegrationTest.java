@@ -3,6 +3,7 @@ package com.tranche.allocation.service;
 import com.tranche.allocation.dto.CommitmentRequest;
 import com.tranche.allocation.dto.CommitmentResult;
 import com.tranche.allocation.repository.AllocationRepository;
+import com.tranche.portfolio.repository.PortfolioPositionRepository;
 import com.tranche.allocation.repository.InvestmentOrderRepository;
 import com.tranche.auth.domain.User;
 import com.tranche.auth.repository.UserRepository;
@@ -54,6 +55,9 @@ class ConcurrentCommitmentIntegrationTest extends AbstractIntegrationTest {
     private InvestmentOrderRepository investmentOrderRepository;
 
     @Autowired
+    private PortfolioPositionRepository portfolioPositionRepository;
+
+    @Autowired
     private AllocationRepository allocationRepository;
 
     private Long opportunityId;
@@ -61,8 +65,9 @@ class ConcurrentCommitmentIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        investmentOrderRepository.deleteAll();
+        portfolioPositionRepository.deleteAll();
         allocationRepository.deleteAll();
+        investmentOrderRepository.deleteAll();
         opportunityRepository.deleteAll();
 
         Issuer issuer = issuerRepository.findAll().getFirst();
