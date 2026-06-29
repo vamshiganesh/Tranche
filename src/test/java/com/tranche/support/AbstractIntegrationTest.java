@@ -53,6 +53,9 @@ public abstract class AbstractIntegrationTest {
     }
 
     @Autowired
+    protected IssuerRepository issuerRepository;
+
+    @Autowired
     protected UserRepository userRepository;
 
     @Autowired
@@ -112,5 +115,20 @@ public abstract class AbstractIntegrationTest {
                 .filter(user -> user.getRole() == Role.INVESTOR)
                 .map(UserPrincipal::from)
                 .toList();
+    }
+
+    /** Creates a LIVE opportunity for allocation integration tests. */
+    protected Long prepareLiveOpportunity(String title, int totalUnits, int remainingUnits) {
+        resetInvestorWallets();
+        clearTransactionalData();
+        Issuer issuer = issuerRepository.findAll().getFirst();
+        Opportunity opportunity = OpportunityTestBuilder.anOpportunity()
+                .issuer(issuer)
+                .title(title)
+                .totalUnits(totalUnits)
+                .remainingUnits(remainingUnits)
+                .live()
+                .build();
+        return opportunityRepository.save(opportunity).getId();
     }
 }

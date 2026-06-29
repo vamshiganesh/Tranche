@@ -4,7 +4,6 @@ import com.tranche.audit.repository.AuditLogRepository;
 import com.tranche.audit.domain.AuditEntityTypes;
 import com.tranche.allocation.dto.CommitmentRequest;
 import com.tranche.allocation.service.AllocationEngine;
-import org.springframework.data.domain.Pageable;
 import com.tranche.common.exception.InvalidStateTransitionException;
 import com.tranche.common.security.UserPrincipal;
 import com.tranche.issuer.domain.Issuer;
