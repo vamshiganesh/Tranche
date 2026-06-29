@@ -91,7 +91,7 @@ public class OpportunityController {
             @RequestParam(required = false) RiskGrade riskGrade,
             @PageableDefault(size = 20, sort = "maturityDate", direction = Sort.Direction.ASC) Pageable pageable
     ) {
-        return opportunityService.list(status, riskGrade, pageable);
+        return opportunityService.list(status, riskGrade, pageable, SecurityUtils.requireCurrentUser());
     }
 
     @GetMapping("/{id}")

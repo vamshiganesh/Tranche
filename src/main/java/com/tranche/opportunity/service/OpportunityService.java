@@ -331,10 +331,17 @@ public class OpportunityService {
     public PageResponse<OpportunitySummaryResponse> list(
             OpportunityStatus status,
             RiskGrade riskGrade,
-            Pageable pageable
+            Pageable pageable,
+            UserPrincipal principal
     ) {
+        Long issuerId = null;
+        if (principal.getRole() == Role.ISSUER) {
+            issuerId = issuerRepository.findByUser_PublicId(principal.getPublicId())
+                    .map(Issuer::getId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Issuer profile not found"));
+        }
         Page<Opportunity> page = opportunityRepository.findAll(
-                OpportunitySpecifications.withFilters(status, riskGrade),
+                OpportunitySpecifications.withFilters(status, riskGrade, issuerId),
                 pageable
         );
         return PageResponse.from(page.map(OpportunityMapper::toSummary));

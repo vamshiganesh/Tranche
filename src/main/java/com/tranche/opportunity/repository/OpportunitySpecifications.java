@@ -14,7 +14,11 @@ public final class OpportunitySpecifications {
     private OpportunitySpecifications() {
     }
 
-    public static Specification<Opportunity> withFilters(OpportunityStatus status, RiskGrade riskGrade) {
+    public static Specification<Opportunity> withFilters(
+            OpportunityStatus status,
+            RiskGrade riskGrade,
+            Long issuerId
+    ) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
             if (status != null) {
@@ -22,6 +26,9 @@ public final class OpportunitySpecifications {
             }
             if (riskGrade != null) {
                 predicates.add(criteriaBuilder.equal(root.get("riskGrade"), riskGrade));
+            }
+            if (issuerId != null) {
+                predicates.add(criteriaBuilder.equal(root.get("issuer").get("id"), issuerId));
             }
             return criteriaBuilder.and(predicates.toArray(Predicate[]::new));
         };
