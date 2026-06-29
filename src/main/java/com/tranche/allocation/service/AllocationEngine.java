@@ -11,6 +11,7 @@ import com.tranche.allocation.dto.CommitmentResult;
 import com.tranche.allocation.repository.AllocationRepository;
 import com.tranche.allocation.repository.InvestmentOrderRepository;
 import com.tranche.audit.domain.AuditActions;
+import com.tranche.audit.domain.AuditActorRole;
 import com.tranche.audit.service.AuditService;
 import com.tranche.auth.domain.User;
 import com.tranche.auth.repository.UserRepository;
