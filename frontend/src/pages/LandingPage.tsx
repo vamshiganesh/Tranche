@@ -125,29 +125,31 @@ export function LandingPage() {
     <div className="landing">
       <div className="landing-grain" aria-hidden />
 
-      <header className={`landing-nav-shell${navScrolled ? ' scrolled' : ''}`}>
-        <div className="landing-nav-inner">
-          <Link to="/" className="landing-nav-brand">
-            <strong>Tranche</strong>
-            <span>Invoice discounting</span>
-          </Link>
-          <nav className="landing-nav-links">
-            <a href="#platform" className="landing-nav-link">
-              Platform
-            </a>
-            <a href="#lifecycle" className="landing-nav-link">
-              Lifecycle
-            </a>
-            <a href="#roles" className="landing-nav-link">
-              Roles
-            </a>
-            <span className="landing-nav-divider" aria-hidden />
-            <Link to="/login" className="landing-btn landing-btn-primary landing-btn-sm">
-              Sign in
+      <div className="landing-nav-float">
+        <header className={`landing-nav-pill${navScrolled ? ' scrolled' : ''}`}>
+          <div className="landing-nav-inner">
+            <Link to="/" className="landing-nav-brand">
+              <strong>Tranche</strong>
+              <span>Invoice discounting</span>
             </Link>
-          </nav>
-        </div>
-      </header>
+            <nav className="landing-nav-links">
+              <a href="#platform" className="landing-nav-link">
+                Platform
+              </a>
+              <a href="#lifecycle" className="landing-nav-link">
+                Lifecycle
+              </a>
+              <a href="#roles" className="landing-nav-link">
+                Roles
+              </a>
+              <span className="landing-nav-divider" aria-hidden />
+              <Link to="/login" className="landing-btn landing-btn-primary landing-btn-sm">
+                Sign in
+              </Link>
+            </nav>
+          </div>
+        </header>
+      </div>
 
       <section className="landing-hero">
         <div className="landing-hero-grid" aria-hidden />
@@ -299,7 +301,7 @@ export function LandingPage() {
           </p>
         </div>
         <div className="landing-cta-actions">
-          <Link to="/login" className="landing-btn landing-btn-primary">
+          <Link to="/login" className="landing-btn landing-btn-on-dark">
             Get started
             <BtnArrow />
           </Link>
