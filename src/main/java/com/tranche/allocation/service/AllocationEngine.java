@@ -12,6 +12,7 @@ import com.tranche.allocation.repository.AllocationRepository;
 import com.tranche.allocation.repository.InvestmentOrderRepository;
 import com.tranche.audit.domain.AuditActions;
 import com.tranche.audit.domain.AuditActorRole;
+import com.tranche.audit.domain.AuditEntityTypes;
 import com.tranche.audit.service.AuditService;
 import com.tranche.auth.domain.User;
 import com.tranche.auth.repository.UserRepository;
@@ -29,12 +30,10 @@ import com.tranche.opportunity.domain.Opportunity;
 import com.tranche.opportunity.domain.OpportunityStateMachine;
 import com.tranche.opportunity.domain.OpportunityStatus;
 import com.tranche.opportunity.repository.OpportunityRepository;
-import com.tranche.opportunity.service.OpportunityCacheNames;
+import com.tranche.opportunity.service.EvictOpportunityCachesOnCommit;
 import com.tranche.portfolio.domain.PortfolioPosition;
 import com.tranche.portfolio.domain.PortfolioStatus;
 import com.tranche.portfolio.repository.PortfolioPositionRepository;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -84,10 +83,7 @@ public class AllocationEngine {
      * Lock order: opportunity row first, then investor profile — consistent across all threads.
      */
     @Transactional(noRollbackFor = BusinessException.class)
-    @Caching(evict = {
-            @CacheEvict(cacheNames = OpportunityCacheNames.LIVE_LISTINGS, allEntries = true),
-            @CacheEvict(cacheNames = OpportunityCacheNames.DETAIL, key = "#opportunityId")
-    })
+    @EvictOpportunityCachesOnCommit
     public CommitmentResult allocate(
             Long opportunityId,
             UUID idempotencyKey,
@@ -122,7 +118,7 @@ public class AllocationEngine {
                     rejectionMessage(ErrorCode.valueOf(order.getRejectionReason()))
             );
         }
-        return new CommitmentResult(toResponse(order), true);
+        return new CommitmentResult(CommitmentMapper.toResponse(order), true);
     }
 
     private CommitmentResult processNewCommitment(
@@ -165,12 +161,10 @@ public class AllocationEngine {
                     request,
                     fill
             );
-            auditService.log(
+            auditRejectedCommitment(
                     investor,
-                    AuditActorRole.INVESTOR,
-                    AuditActions.COMMITMENT_REJECTED,
-                    "InvestmentOrder",
                     rejectedOrder.getId(),
+                    opportunityId,
                     Map.of("opportunityId", opportunityId),
                     Map.of(
                             "fillStatus", FillStatus.REJECTED.name(),
@@ -199,12 +193,10 @@ public class AllocationEngine {
                                 ex.getMessage()
                         )
                 );
-                auditService.log(
+                auditRejectedCommitment(
                         investor,
-                        AuditActorRole.INVESTOR,
-                        AuditActions.COMMITMENT_REJECTED,
-                        "InvestmentOrder",
                         rejectedOrder.getId(),
+                        opportunityId,
                         walletBefore,
                         Map.of("reason", ErrorCode.INSUFFICIENT_FUNDS.name())
                 );
@@ -269,7 +261,7 @@ public class AllocationEngine {
                 investor,
                 AuditActorRole.INVESTOR,
                 AuditActions.FUNDS_LOCKED,
-                "InvestorProfile",
+                AuditEntityTypes.INVESTOR_PROFILE,
                 profile.getId(),
                 walletBefore,
                 InvestorWalletService.walletSnapshot(profile)
