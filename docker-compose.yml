@@ -11,6 +11,7 @@ services:
       MARIADB_PASSWORD: ${MARIADB_PASSWORD:-tranche}
     volumes:
       - mariadb_data:/var/lib/mysql
+      - ./docker/mariadb/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 10s
@@ -30,6 +31,27 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  app:
+    build: .
+    container_name: tranche-app
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      DATABASE_URL: jdbc:mariadb://mariadb:3306/tranche
+      DATABASE_USERNAME: ${MARIADB_USER:-tranche}
+      DATABASE_PASSWORD: ${MARIADB_PASSWORD:-tranche}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET:-dev-only-jwt-secret-key-minimum-32-characters-long}
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    profiles:
+      - full
 
 volumes:
   mariadb_data:
