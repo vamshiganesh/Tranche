@@ -251,10 +251,7 @@ public class OpportunityService {
     }
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(cacheNames = OpportunityCacheNames.LIVE_LISTINGS, allEntries = true),
-            @CacheEvict(cacheNames = OpportunityCacheNames.DETAIL, key = "#id")
-    })
+    @EvictOpportunityCaches
     public OpportunityStatusResponse adminTransition(Long id, AdminTransitionRequest request) {
         if (!ADMIN_TRANSITION_TARGETS.contains(request.targetStatus())) {
             throw new BusinessException(

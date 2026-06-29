@@ -1,7 +1,5 @@
 package com.tranche.audit.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tranche.audit.domain.AuditActorRole;
 import com.tranche.audit.domain.AuditLog;
@@ -12,23 +10,18 @@ import com.tranche.audit.repository.AuditLogRepository;
 import com.tranche.auth.domain.User;
 import com.tranche.common.dto.PageResponse;
 import com.tranche.common.util.CorrelationIdHolder;
+import com.tranche.common.util.JsonMapConverter;
 import com.tranche.opportunity.domain.OpportunityStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 @Service
 public class AuditService {
-
-    private static final Logger log = LoggerFactory.getLogger(AuditService.class);
-    private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() {};
 
     private final AuditLogRepository auditLogRepository;
     private final ObjectMapper objectMapper;
@@ -39,7 +32,7 @@ public class AuditService {
     }
 
     /**
-     * Append-only write — called from within the same transaction as the business action.
+     * Append-only write — participates in the caller's transaction (no @Transactional here).
      */
     public void log(
             User actor,
@@ -56,8 +49,8 @@ public class AuditService {
         entry.setAction(action);
         entry.setEntityType(entityType);
         entry.setEntityId(entityId);
-        entry.setBeforeState(toJson(beforeState));
-        entry.setAfterState(toJson(afterState));
+        entry.setBeforeState(JsonMapConverter.toJson(objectMapper, beforeState));
+        entry.setAfterState(JsonMapConverter.toJson(objectMapper, afterState));
         entry.setCorrelationId(CorrelationIdHolder.get());
         auditLogRepository.save(entry);
     }
@@ -130,27 +123,10 @@ public class AuditService {
         return entry.getActor().getPublicId().toString();
     }
 
-    private String toJson(Map<String, Object> state) {
-        if (state == null || state.isEmpty()) {
-            return null;
-        }
-        try {
-            return objectMapper.writeValueAsString(state);
-        } catch (JsonProcessingException ex) {
-            log.warn("Failed to serialize audit state", ex);
-            return null;
-        }
-    }
-
     private Map<String, Object> parseJson(String json) {
         if (json == null || json.isBlank()) {
             return null;
         }
-        try {
-            return objectMapper.readValue(json, MAP_TYPE);
-        } catch (JsonProcessingException ex) {
-            log.warn("Failed to parse audit state", ex);
-            return Collections.emptyMap();
-        }
+        return JsonMapConverter.fromJson(objectMapper, json);
     }
 }
