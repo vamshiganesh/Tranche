@@ -1,0 +1,28 @@
+spring:
+  datasource:
+    url: jdbc:mariadb://localhost:3306/tranche
+    username: tranche
+    password: tranche
+
+  jpa:
+    show-sql: true
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+logging:
+  level:
+    com.tranche: DEBUG
+    org.springframework.web: DEBUG
+
+tranche:
+  jwt:
+    secret: dev-only-jwt-secret-key-minimum-32-characters-long
+    expiration-ms: 86400000
+
+management:
+  endpoint:
+    health:
+      show-details: always

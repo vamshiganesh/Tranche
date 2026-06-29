@@ -1,0 +1,36 @@
+services:
+  mariadb:
+    image: mariadb:11.4
+    container_name: tranche-mariadb
+    ports:
+      - "${MARIADB_PORT:-3306}:3306"
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-root}
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-tranche}
+      MARIADB_USER: ${MARIADB_USER:-tranche}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:-tranche}
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    container_name: tranche-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mariadb_data:
+  redis_data:
