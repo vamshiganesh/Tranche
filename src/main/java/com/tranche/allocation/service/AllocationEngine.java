@@ -6,7 +6,6 @@ import com.tranche.allocation.domain.FillStatus;
 import com.tranche.allocation.domain.InvestmentOrder;
 import com.tranche.allocation.domain.OrderStatus;
 import com.tranche.allocation.dto.CommitmentRequest;
-import com.tranche.allocation.dto.CommitmentResponse;
 import com.tranche.allocation.dto.CommitmentResult;
 import com.tranche.allocation.repository.AllocationRepository;
 import com.tranche.allocation.repository.InvestmentOrderRepository;
@@ -164,7 +163,6 @@ public class AllocationEngine {
             auditRejectedCommitment(
                     investor,
                     rejectedOrder.getId(),
-                    opportunityId,
                     Map.of("opportunityId", opportunityId),
                     Map.of(
                             "fillStatus", FillStatus.REJECTED.name(),
@@ -196,7 +194,6 @@ public class AllocationEngine {
                 auditRejectedCommitment(
                         investor,
                         rejectedOrder.getId(),
-                        opportunityId,
                         walletBefore,
                         Map.of("reason", ErrorCode.INSUFFICIENT_FUNDS.name())
                 );
@@ -271,7 +268,7 @@ public class AllocationEngine {
                 investor,
                 AuditActorRole.INVESTOR,
                 AuditActions.ALLOCATION_CREATED,
-                "Allocation",
+                AuditEntityTypes.ALLOCATION,
                 allocation.getId(),
                 Map.of(
                         "opportunityId", opportunityId,
@@ -290,7 +287,7 @@ public class AllocationEngine {
                     investor,
                     AuditActorRole.SYSTEM,
                     AuditActions.OPPORTUNITY_FULLY_SUBSCRIBED,
-                    "Opportunity",
+                    AuditEntityTypes.OPPORTUNITY,
                     opportunityId,
                     Map.of("status", statusBefore.name()),
                     Map.of("status", OpportunityStatus.FULLY_SUBSCRIBED.name())
@@ -299,7 +296,7 @@ public class AllocationEngine {
 
         outboxWriter.write(
                 OutboxEventType.INVESTMENT_SUCCESSFUL,
-                "Allocation",
+                AuditEntityTypes.ALLOCATION,
                 allocation.getId(),
                 Map.of(
                         "allocationId", allocation.getId(),
@@ -312,7 +309,24 @@ public class AllocationEngine {
                 )
         );
 
-        return new CommitmentResult(toResponse(order), false);
+        return new CommitmentResult(CommitmentMapper.toResponse(order), false);
+    }
+
+    private void auditRejectedCommitment(
+            User investor,
+            Long orderId,
+            Map<String, Object> beforeState,
+            Map<String, Object> afterState
+    ) {
+        auditService.log(
+                investor,
+                AuditActorRole.INVESTOR,
+                AuditActions.COMMITMENT_REJECTED,
+                AuditEntityTypes.INVESTMENT_ORDER,
+                orderId,
+                beforeState,
+                afterState
+        );
     }
 
     private InvestmentOrder persistRejectedOrder(
@@ -335,21 +349,6 @@ public class AllocationEngine {
         order.setRejectionReason(fill.rejectionCode().name());
         order.setCorrelationId(CorrelationIdHolder.get());
         return investmentOrderRepository.save(order);
-    }
-
-    static CommitmentResponse toResponse(InvestmentOrder order) {
-        return new CommitmentResponse(
-                order.getId(),
-                order.getOpportunity().getId(),
-                order.getUnitsRequested(),
-                order.getUnitsAllocated(),
-                order.getAmountRequested(),
-                order.getAmountAllocated(),
-                order.getFillStatus(),
-                order.getStatus(),
-                order.getIdempotencyKey(),
-                order.getCreatedAt()
-        );
     }
 
     private static String rejectionMessage(ErrorCode code) {
