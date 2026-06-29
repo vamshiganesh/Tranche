@@ -143,7 +143,7 @@ export function LandingPage() {
                 Roles
               </a>
               <span className="landing-nav-divider" aria-hidden />
-              <Link to="/login" className="landing-btn landing-btn-primary landing-btn-sm">
+              <Link to="/login" className="landing-btn landing-btn-primary">
                 Sign in
               </Link>
             </nav>

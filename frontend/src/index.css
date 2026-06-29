@@ -42,7 +42,29 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(122, 115, 106, 0.45) transparent;
+}
+html::-webkit-scrollbar {
+  width: 10px;
+}
+html::-webkit-scrollbar-track {
+  background: transparent;
+}
+html::-webkit-scrollbar-thumb {
+  background: rgba(122, 115, 106, 0.32);
+  border-radius: 100px;
+  border: 3px solid var(--paper);
+}
+html::-webkit-scrollbar-thumb:hover {
+  background: rgba(74, 69, 64, 0.5);
+}
+html::-webkit-scrollbar-corner {
+  background: transparent;
+}
 body {
   margin: 0;
   font-family: var(--font-sans);
@@ -173,6 +195,17 @@ a:hover { text-decoration: underline; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-primary { background: var(--forest); color: #fff; }
 .btn-primary:hover:not(:disabled) { background: var(--forest-hover); }
+.btn-ink {
+  background: var(--ink);
+  color: #f7f4ef;
+  border-color: var(--ink);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 2px rgba(20, 18, 16, 0.12);
+}
+.btn-ink:hover:not(:disabled) {
+  background: #1f1c19;
+  border-color: #1f1c19;
+  color: #fff;
+}
 .btn-secondary { background: var(--surface); color: var(--ink); border-color: var(--border); }
 .btn-secondary:hover:not(:disabled) { background: var(--paper-elevated); }
 .btn-ghost { background: transparent; color: var(--ink-secondary); }

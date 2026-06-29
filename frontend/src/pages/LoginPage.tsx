@@ -109,7 +109,7 @@ export function LoginPage() {
                 required
               />
             </div>
-            <button type="submit" className="btn btn-primary btn-block" disabled={submitting}>
+            <button type="submit" className="btn btn-ink btn-block" disabled={submitting}>
               {submitting ? 'Signing in…' : 'Sign in'}
             </button>
           </form>
