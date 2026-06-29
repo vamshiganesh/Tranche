@@ -277,7 +277,7 @@ public class AllocationEngine {
         auditService.log(
                 investor,
                 AuditActorRole.INVESTOR,
-                "ALLOCATION_CREATED",
+                AuditActions.ALLOCATION_CREATED,
                 "Allocation",
                 allocation.getId(),
                 Map.of(
@@ -296,7 +296,7 @@ public class AllocationEngine {
             auditService.log(
                     investor,
                     AuditActorRole.SYSTEM,
-                    "OPPORTUNITY_FULLY_SUBSCRIBED",
+                    AuditActions.OPPORTUNITY_FULLY_SUBSCRIBED,
                     "Opportunity",
                     opportunityId,
                     Map.of("status", statusBefore.name()),

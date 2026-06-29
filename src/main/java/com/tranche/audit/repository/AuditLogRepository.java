@@ -29,9 +29,9 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
             @Param("entityId") Long entityId
     );
 
+    @EntityGraph(attributePaths = "actor")
     @Query("""
             SELECT a FROM AuditLog a
-            LEFT JOIN FETCH a.actor
             WHERE (:entityType IS NULL OR a.entityType = :entityType)
               AND (:entityId IS NULL OR a.entityId = :entityId)
             """)
