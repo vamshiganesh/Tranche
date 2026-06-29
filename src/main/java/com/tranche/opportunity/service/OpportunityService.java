@@ -202,7 +202,8 @@ public class OpportunityService {
     @Transactional(readOnly = true)
     @Cacheable(
             cacheNames = OpportunityCacheNames.LIVE_LISTINGS,
-            key = "#status + ':' + #riskGrade + ':' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort"
+            condition = "#status == T(com.tranche.opportunity.domain.OpportunityStatus).LIVE",
+            key = "#riskGrade + ':' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort"
     )
     public PageResponse<OpportunitySummaryResponse> list(
             OpportunityStatus status,

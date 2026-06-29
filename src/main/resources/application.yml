@@ -62,6 +62,9 @@ tranche:
   investor:
     default-wallet-balance: ${INVESTOR_DEFAULT_WALLET_BALANCE:0}
     default-currency: USD
+  cache:
+    opportunity-list-ttl: 60s
+    opportunity-detail-ttl: 30s
 
 logging:
   level:
