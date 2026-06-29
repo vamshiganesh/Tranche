@@ -62,7 +62,7 @@ public class GlobalExceptionHandler {
 
     private HttpStatus mapStatus(ErrorCode code) {
         return switch (code) {
-            case VALIDATION_ERROR, OPPORTUNITY_NOT_EDITABLE -> HttpStatus.BAD_REQUEST;
+            case VALIDATION_ERROR, OPPORTUNITY_NOT_EDITABLE, MISSING_IDEMPOTENCY_KEY -> HttpStatus.BAD_REQUEST;
             case INVALID_CREDENTIALS, UNAUTHORIZED -> HttpStatus.UNAUTHORIZED;
             case FORBIDDEN, INVALID_ROLE -> HttpStatus.FORBIDDEN;
             case NOT_FOUND -> HttpStatus.NOT_FOUND;
