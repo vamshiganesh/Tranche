@@ -38,7 +38,7 @@ public class OutboxEvent {
     private Long aggregateId;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(nullable = false, columnDefinition = "json")
+    @Column(columnDefinition = "longtext")
     private String payload;
 
     @Enumerated(EnumType.STRING)

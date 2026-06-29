@@ -47,11 +47,11 @@ public class AuditLog {
     private Long entityId;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "before_state", columnDefinition = "json")
+    @Column(name = "before_state", columnDefinition = "longtext")
     private String beforeState;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "after_state", columnDefinition = "json")
+    @Column(name = "after_state", columnDefinition = "longtext")
     private String afterState;
 
     @Column(name = "correlation_id", length = 64)

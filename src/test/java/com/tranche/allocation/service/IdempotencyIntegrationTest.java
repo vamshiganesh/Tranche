@@ -17,7 +17,7 @@ import com.tranche.opportunity.domain.Opportunity;
 import com.tranche.opportunity.domain.OpportunityStatus;
 import com.tranche.opportunity.domain.RiskGrade;
 import com.tranche.opportunity.repository.OpportunityRepository;
-import com.tranche.support.AbstractIntegrationTest;
+import com.tranche.support.LocalDatabaseIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +28,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class IdempotencyIntegrationTest extends AbstractIntegrationTest {
+class IdempotencyIntegrationTest extends LocalDatabaseIntegrationTest {
 
     @Autowired
     private AllocationEngine allocationEngine;
