@@ -115,6 +115,7 @@ Every status transition and money-affecting action produces an immutable `audit_
 | Security | Spring Security + JWT |
 | Testing | JUnit 5, Testcontainers |
 | Local infra | Docker Compose |
+| Frontend | React 19, Vite, TypeScript (see `../frontend`) |
 
 ---
 
@@ -138,6 +139,18 @@ mvn spring-boot:run
 # 3. Health check
 curl -s http://localhost:8080/actuator/health | jq
 ```
+
+### Web UI (optional)
+
+A React frontend lives in `../frontend`. With the API running on port 8080:
+
+```bash
+cd ../frontend
+npm install
+npm run dev
+```
+
+Open [http://localhost:5173](http://localhost:5173). Vite proxies `/api` to the backend. See [frontend/README.md](../frontend/README.md) for role-based workflows.
 
 ### Docker Compose Services
 
@@ -219,7 +232,6 @@ Summary:
 - **OpenAPI / SpringDoc** — interactive API documentation
 - **Observability** — distributed tracing, metrics dashboards, structured logging
 - **Event sourcing for allocation** — full event replay for regulatory audit
-
 ---
 
 ## License
