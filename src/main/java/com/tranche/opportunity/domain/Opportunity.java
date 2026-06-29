@@ -106,6 +106,10 @@ public class Opportunity {
         return id;
     }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public Issuer getIssuer() {
         return issuer;
     }
