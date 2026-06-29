@@ -123,42 +123,72 @@ Every status transition and money-affecting action produces an immutable `audit_
 ### Prerequisites
 
 - Java 21
-- Docker & Docker Compose
-- Maven 3.9+
+- Docker (for Testcontainers tests and local MariaDB/Redis)
+- Maven 3.9+ (or use `./mvnw`)
 
-### Quick Start (once implemented)
+### Quick Start
 
 ```bash
-# Start infrastructure
+# 1. Start MariaDB + Redis
 docker compose up -d
 
-# Run migrations and start the app
+# 2. Run the API (Flyway migrations + seed data apply on startup)
 ./mvnw spring-boot:run
 
-# Run tests (includes Testcontainers integration tests)
-./mvnw test
+# 3. Health check
+curl -s http://localhost:8080/actuator/health | jq
 ```
 
-### Docker Compose Services (planned)
+### Docker Compose Services
 
 | Service | Port | Purpose |
 |---|---|---|
-| MariaDB | 3306 | Primary datastore |
+| MariaDB | 3306 | Primary datastore (`tranche` DB; `tranche_test` created via init script) |
 | Redis | 6379 | Opportunity listing cache |
-| App | 8080 | Spring Boot API |
+| App | 8080 | Spring Boot API (`--profile full` only) |
 
-Environment variables will be documented in `.env.example` during Phase 1 scaffolding.
+Run the app inside Docker:
+
+```bash
+docker compose --profile full up -d --build
+```
+
+### Seeded demo users
+
+All passwords: **`Password123!`**
+
+| Email | Role |
+|---|---|
+| `admin@tranche.local` | ADMIN |
+| `issuer@tranche.local` | ISSUER |
+| `investor1@tranche.local` | INVESTOR |
+| `investor2@tranche.local` | INVESTOR |
+
+A demo opportunity (**Acme Q1 Receivables — Invoice #INV-2026-0142**) is seeded in `DRAFT` for the full lifecycle walkthrough.
+
+### Tests
+
+Integration tests spin up **MariaDB + Redis via Testcontainers** — no manual `tranche_test` setup required:
+
+```bash
+./mvnw test
+```
+
+Tests are skipped automatically when Docker is unavailable (`disabledWithoutDocker`).
 
 ---
 
 ## Demo Flow
 
-1. Admin logs in and reviews an invoice opportunity.
-2. Admin approves and publishes it (`LIVE`).
-3. Two investors submit commitments concurrently on the same opportunity.
-4. System allocates units correctly — no overbooking, partial fills where needed.
-5. Portfolio positions update for both investors.
-6. Audit timeline shows every transition and allocation event.
+See **[docs/demo-flow.md](docs/demo-flow.md)** for curl commands and a two-investor race walkthrough.
+
+Summary:
+
+1. Admin reviews and publishes the seeded opportunity.
+2. Two investors submit concurrent commitments.
+3. System allocates correctly — no overbooking, partial fills where needed.
+4. Portfolio positions update; audit timeline captures every step.
+5. Admin matures and settles the opportunity.
 
 ---
 
@@ -169,6 +199,10 @@ Environment variables will be documented in `.env.example` during Phase 1 scaffo
 | [docs/architecture.md](docs/architecture.md) | Module boundaries, layering, locking, outbox, caching, security |
 | [docs/implementation-plan.md](docs/implementation-plan.md) | Phased build order, milestones, acceptance criteria, risks |
 | [docs/api-contract.md](docs/api-contract.md) | REST endpoint sketch with request/response examples |
+| [docs/allocation-engine.md](docs/allocation-engine.md) | Commitment API, locking, idempotency, partial fills |
+| [docs/audit-and-outbox.md](docs/audit-and-outbox.md) | Audit query APIs and outbox poller |
+| [docs/non-functional-design.md](docs/non-functional-design.md) | Errors, validation, rate limits, caching, RBAC |
+| [docs/demo-flow.md](docs/demo-flow.md) | End-to-end demo with curl examples |
 
 ---
 
@@ -179,7 +213,7 @@ Environment variables will be documented in `.env.example` during Phase 1 scaffo
 - **Investor KYC workflow** — identity verification before first commitment
 - **Secondary market** — transfer allocated positions between investors
 - **Risk scoring service** — automated risk grade assignment
-- **Rate limiting & API gateway** — production-grade traffic shaping
+- **OpenAPI / SpringDoc** — interactive API documentation
 - **Observability** — distributed tracing, metrics dashboards, structured logging
 - **Event sourcing for allocation** — full event replay for regulatory audit
 
@@ -187,4 +221,4 @@ Environment variables will be documented in `.env.example` during Phase 1 scaffo
 
 ## License
 
-MIT 
+MIT
