@@ -9,7 +9,8 @@ import com.tranche.auth.domain.User;
 import com.tranche.auth.repository.UserRepository;
 import com.tranche.common.domain.Role;
 import com.tranche.common.security.UserPrincipal;
-import com.tranche.issuer.domain.Issuer;
+import com.tranche.investor.domain.InvestorProfile;
+import com.tranche.investor.repository.InvestorProfileRepository;
 import com.tranche.issuer.repository.IssuerRepository;
 import com.tranche.opportunity.domain.Opportunity;
 import com.tranche.opportunity.domain.OpportunityStatus;
@@ -46,6 +47,9 @@ class ConcurrentCommitmentIntegrationTest extends LocalDatabaseIntegrationTest {
     private OpportunityRepository opportunityRepository;
 
     @Autowired
+    private InvestorProfileRepository investorProfileRepository;
+
+    @Autowired
     private IssuerRepository issuerRepository;
 
     @Autowired
@@ -65,6 +69,7 @@ class ConcurrentCommitmentIntegrationTest extends LocalDatabaseIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        resetInvestorWallets();
         portfolioPositionRepository.deleteAll();
         allocationRepository.deleteAll();
         investmentOrderRepository.deleteAll();
@@ -91,6 +96,14 @@ class ConcurrentCommitmentIntegrationTest extends LocalDatabaseIntegrationTest {
                 .map(UserPrincipal::from)
                 .toList();
         assertThat(investors).hasSizeGreaterThanOrEqualTo(2);
+    }
+
+    private void resetInvestorWallets() {
+        for (InvestorProfile profile : investorProfileRepository.findAll()) {
+            profile.setWalletBalance(new BigDecimal("500000.0000"));
+            profile.setLockedBalance(BigDecimal.ZERO);
+            investorProfileRepository.save(profile);
+        }
     }
 
     @Test

@@ -10,7 +10,8 @@ import com.tranche.auth.domain.User;
 import com.tranche.auth.repository.UserRepository;
 import com.tranche.common.domain.Role;
 import com.tranche.common.security.UserPrincipal;
-import com.tranche.issuer.domain.Issuer;
+import com.tranche.investor.domain.InvestorProfile;
+import com.tranche.investor.repository.InvestorProfileRepository;
 import com.tranche.issuer.repository.IssuerRepository;
 import com.tranche.notification.repository.OutboxEventRepository;
 import com.tranche.opportunity.domain.Opportunity;
@@ -35,6 +36,9 @@ class IdempotencyIntegrationTest extends LocalDatabaseIntegrationTest {
 
     @Autowired
     private OpportunityRepository opportunityRepository;
+
+    @Autowired
+    private InvestorProfileRepository investorProfileRepository;
 
     @Autowired
     private IssuerRepository issuerRepository;
@@ -63,6 +67,7 @@ class IdempotencyIntegrationTest extends LocalDatabaseIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        resetInvestorWallets();
         portfolioPositionRepository.deleteAll();
         allocationRepository.deleteAll();
         investmentOrderRepository.deleteAll();
@@ -92,6 +97,14 @@ class IdempotencyIntegrationTest extends LocalDatabaseIntegrationTest {
                 .orElseThrow();
         investor = UserPrincipal.from(user);
         idempotencyKey = UUID.randomUUID();
+    }
+
+    private void resetInvestorWallets() {
+        for (InvestorProfile profile : investorProfileRepository.findAll()) {
+            profile.setWalletBalance(new BigDecimal("500000.0000"));
+            profile.setLockedBalance(BigDecimal.ZERO);
+            investorProfileRepository.save(profile);
+        }
     }
 
     @Test
