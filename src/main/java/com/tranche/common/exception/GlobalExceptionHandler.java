@@ -67,6 +67,8 @@ public class GlobalExceptionHandler {
             case FORBIDDEN, INVALID_ROLE -> HttpStatus.FORBIDDEN;
             case NOT_FOUND -> HttpStatus.NOT_FOUND;
             case CONFLICT, PROFILE_ALREADY_EXISTS, INVALID_STATE_TRANSITION -> HttpStatus.CONFLICT;
+            case OPPORTUNITY_NOT_LIVE, INSUFFICIENT_UNITS, INSUFFICIENT_FUNDS, BELOW_MINIMUM_LOT ->
+                    HttpStatus.UNPROCESSABLE_ENTITY;
             default -> HttpStatus.INTERNAL_SERVER_ERROR;
         };
     }
