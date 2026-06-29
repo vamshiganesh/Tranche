@@ -1,6 +1,7 @@
 import Lenis from 'lenis'
 import { useEffect } from 'react'
 
+
 export function useLenis(active = true) {
   useEffect(() => {
     if (!active) return
