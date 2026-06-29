@@ -2,6 +2,7 @@ package com.tranche.opportunity.service;
 
 import com.tranche.audit.domain.AuditActions;
 import com.tranche.audit.domain.AuditActorRole;
+import com.tranche.audit.domain.AuditEntityTypes;
 import com.tranche.audit.service.AuditService;
 import com.tranche.auth.domain.User;
 import com.tranche.auth.repository.UserRepository;
@@ -34,7 +35,6 @@ import com.tranche.opportunity.repository.OpportunityRepository;
 import com.tranche.opportunity.repository.OpportunitySpecifications;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -104,7 +104,7 @@ public class OpportunityService {
                 actor,
                 toAuditRole(principal.getRole()),
                 AuditActions.OPPORTUNITY_CREATED,
-                "Opportunity",
+                AuditEntityTypes.OPPORTUNITY,
                 saved.getId(),
                 null,
                 Map.of("status", OpportunityStatus.DRAFT.name(), "title", saved.getTitle())
@@ -114,10 +114,7 @@ public class OpportunityService {
     }
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(cacheNames = OpportunityCacheNames.LIVE_LISTINGS, allEntries = true),
-            @CacheEvict(cacheNames = OpportunityCacheNames.DETAIL, key = "#id")
-    })
+    @EvictOpportunityCaches
     public OpportunityResponse update(Long id, UpdateOpportunityRequest request, UserPrincipal principal) {
         Opportunity opportunity = findOwnedOrAdmin(id, principal);
         assertEditable(opportunity);
@@ -165,7 +162,7 @@ public class OpportunityService {
                 actor,
                 toAuditRole(principal.getRole()),
                 AuditActions.OPPORTUNITY_UPDATED,
-                "Opportunity",
+                AuditEntityTypes.OPPORTUNITY,
                 saved.getId(),
                 Map.of("status", statusBefore.name()),
                 Map.of("status", saved.getStatus().name(), "title", saved.getTitle())
@@ -175,10 +172,7 @@ public class OpportunityService {
     }
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(cacheNames = OpportunityCacheNames.LIVE_LISTINGS, allEntries = true),
-            @CacheEvict(cacheNames = OpportunityCacheNames.DETAIL, key = "#id")
-    })
+    @EvictOpportunityCaches
     public OpportunityStatusResponse submitForReview(Long id, UserPrincipal principal) {
         Opportunity opportunity = findOwnedByIssuer(id, principal);
         OpportunityStatus from = opportunity.getStatus();
@@ -190,7 +184,7 @@ public class OpportunityService {
                 actor,
                 AuditActorRole.ISSUER,
                 AuditActions.OPPORTUNITY_SUBMITTED,
-                "Opportunity",
+                AuditEntityTypes.OPPORTUNITY,
                 saved.getId(),
                 from,
                 saved.getStatus()
@@ -200,10 +194,7 @@ public class OpportunityService {
     }
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(cacheNames = OpportunityCacheNames.LIVE_LISTINGS, allEntries = true),
-            @CacheEvict(cacheNames = OpportunityCacheNames.DETAIL, key = "#id")
-    })
+    @EvictOpportunityCaches
     public OpportunityStatusResponse review(Long id, ReviewOpportunityRequest request) {
         Opportunity opportunity = findById(id);
         OpportunityStatus from = opportunity.getStatus();
@@ -224,7 +215,7 @@ public class OpportunityService {
                 actor,
                 AuditActorRole.ADMIN,
                 action,
-                "Opportunity",
+                AuditEntityTypes.OPPORTUNITY,
                 saved.getId(),
                 from,
                 saved.getStatus()
@@ -234,10 +225,7 @@ public class OpportunityService {
     }
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(cacheNames = OpportunityCacheNames.LIVE_LISTINGS, allEntries = true),
-            @CacheEvict(cacheNames = OpportunityCacheNames.DETAIL, key = "#id")
-    })
+    @EvictOpportunityCaches
     public OpportunityStatusResponse publish(Long id) {
         Opportunity opportunity = findById(id);
         OpportunityStatus from = opportunity.getStatus();
@@ -253,7 +241,7 @@ public class OpportunityService {
                 actor,
                 AuditActorRole.ADMIN,
                 AuditActions.OPPORTUNITY_PUBLISHED,
-                "Opportunity",
+                AuditEntityTypes.OPPORTUNITY,
                 saved.getId(),
                 from,
                 saved.getStatus()
@@ -294,7 +282,7 @@ public class OpportunityService {
                     actor,
                     AuditActorRole.ADMIN,
                     AuditActions.OPPORTUNITY_MATURED,
-                    "Opportunity",
+                    AuditEntityTypes.OPPORTUNITY,
                     saved.getId(),
                     from,
                     saved.getStatus()
@@ -302,7 +290,7 @@ public class OpportunityService {
             portfolioService.maturePositionsForOpportunity(saved.getId(), actor);
             outboxWriter.write(
                     OutboxEventType.MATURITY_DUE,
-                    "Opportunity",
+                    AuditEntityTypes.OPPORTUNITY,
                     saved.getId(),
                     Map.of(
                             "opportunityId", saved.getId(),
@@ -316,7 +304,7 @@ public class OpportunityService {
                     actor,
                     AuditActorRole.ADMIN,
                     AuditActions.OPPORTUNITY_SETTLED,
-                    "Opportunity",
+                    AuditEntityTypes.OPPORTUNITY,
                     saved.getId(),
                     from,
                     saved.getStatus()
@@ -324,7 +312,7 @@ public class OpportunityService {
             portfolioService.settlePositionsForOpportunity(saved.getId(), actor);
             outboxWriter.write(
                     OutboxEventType.SETTLEMENT_COMPLETE,
-                    "Opportunity",
+                    AuditEntityTypes.OPPORTUNITY,
                     saved.getId(),
                     Map.of(
                             "opportunityId", saved.getId(),
