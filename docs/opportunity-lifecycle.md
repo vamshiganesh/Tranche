@@ -16,6 +16,7 @@ This document defines the invoice opportunity state machine implemented in `Oppo
 | `MATURED` | Tenure elapsed / manually matured | No |
 | `SETTLED` | Terminal — funds distributed | No |
 
+
 ---
 
 ## Allowed Transitions
