@@ -6,6 +6,8 @@ import com.tranche.auth.domain.User;
 import com.tranche.auth.repository.UserRepository;
 import com.tranche.common.domain.Role;
 import com.tranche.common.security.UserPrincipal;
+import com.tranche.investor.domain.InvestorProfile;
+import com.tranche.investor.repository.InvestorProfileRepository;
 import com.tranche.issuer.domain.Issuer;
 import com.tranche.issuer.repository.IssuerRepository;
 import com.tranche.opportunity.domain.Opportunity;
@@ -40,6 +42,9 @@ class PortfolioIntegrationTest extends LocalDatabaseIntegrationTest {
     private OpportunityRepository opportunityRepository;
 
     @Autowired
+    private InvestorProfileRepository investorProfileRepository;
+
+    @Autowired
     private IssuerRepository issuerRepository;
 
     @Autowired
@@ -50,6 +55,7 @@ class PortfolioIntegrationTest extends LocalDatabaseIntegrationTest {
     @BeforeEach
     void setUp() {
         portfolioPositionRepository.deleteAll();
+        resetInvestorWallets();
 
         Issuer issuer = issuerRepository.findAll().getFirst();
         Opportunity opportunity = new Opportunity();
@@ -89,5 +95,13 @@ class PortfolioIntegrationTest extends LocalDatabaseIntegrationTest {
         assertThat(portfolio.summary().totalInvested()).isEqualByComparingTo("30000.0000");
         assertThat(portfolio.summary().activePositions()).isEqualTo(1);
         assertThat(portfolio.positions().getFirst().investedAmount()).isEqualByComparingTo("30000.0000");
+    }
+
+    private void resetInvestorWallets() {
+        for (InvestorProfile profile : investorProfileRepository.findAll()) {
+            profile.setWalletBalance(new BigDecimal("500000.0000"));
+            profile.setLockedBalance(BigDecimal.ZERO);
+            investorProfileRepository.save(profile);
+        }
     }
 }

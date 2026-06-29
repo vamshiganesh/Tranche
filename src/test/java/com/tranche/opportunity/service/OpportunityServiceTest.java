@@ -37,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -71,7 +72,7 @@ class OpportunityServiceTest {
         );
         securityUtils = Mockito.mockStatic(SecurityUtils.class);
         securityUtils.when(SecurityUtils::requireCurrentUser).thenReturn(adminPrincipal());
-        when(userRepository.getReferenceById(anyLong())).thenReturn(new User());
+        lenient().when(userRepository.getReferenceById(anyLong())).thenReturn(new User());
     }
 
     @AfterEach

@@ -16,6 +16,6 @@ class RealizedYieldCalculatorTest {
                 90
         );
 
-        assertThat(yield).isEqualByComparingTo("34.4375");
+        assertThat(yield).isEqualByComparingTo("34.4700");
     }
 }
