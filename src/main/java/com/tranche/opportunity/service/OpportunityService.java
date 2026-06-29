@@ -58,15 +58,27 @@ public class OpportunityService {
     private final OpportunityRepository opportunityRepository;
     private final IssuerRepository issuerRepository;
     private final OpportunityStateMachine stateMachine;
+    private final AuditService auditService;
+    private final OutboxWriter outboxWriter;
+    private final PortfolioService portfolioService;
+    private final UserRepository userRepository;
 
     public OpportunityService(
             OpportunityRepository opportunityRepository,
             IssuerRepository issuerRepository,
-            OpportunityStateMachine stateMachine
+            OpportunityStateMachine stateMachine,
+            AuditService auditService,
+            OutboxWriter outboxWriter,
+            PortfolioService portfolioService,
+            UserRepository userRepository
     ) {
         this.opportunityRepository = opportunityRepository;
         this.issuerRepository = issuerRepository;
         this.stateMachine = stateMachine;
+        this.auditService = auditService;
+        this.outboxWriter = outboxWriter;
+        this.portfolioService = portfolioService;
+        this.userRepository = userRepository;
     }
 
     @Transactional
@@ -86,7 +98,19 @@ public class OpportunityService {
         opportunity.setStatus(OpportunityStatus.DRAFT);
         opportunity.setRemainingUnits(request.totalUnits());
 
-        return OpportunityMapper.toResponse(opportunityRepository.save(opportunity));
+        Opportunity saved = opportunityRepository.save(opportunity);
+        User actor = userRepository.getReferenceById(principal.getId());
+        auditService.log(
+                actor,
+                toAuditRole(principal.getRole()),
+                AuditActions.OPPORTUNITY_CREATED,
+                "Opportunity",
+                saved.getId(),
+                null,
+                Map.of("status", OpportunityStatus.DRAFT.name(), "title", saved.getTitle())
+        );
+
+        return OpportunityMapper.toResponse(saved);
     }
 
     @Transactional
@@ -97,6 +121,7 @@ public class OpportunityService {
     public OpportunityResponse update(Long id, UpdateOpportunityRequest request, UserPrincipal principal) {
         Opportunity opportunity = findOwnedOrAdmin(id, principal);
         assertEditable(opportunity);
+        OpportunityStatus statusBefore = opportunity.getStatus();
 
         if (request.title() != null) {
             opportunity.setTitle(request.title().trim());
@@ -134,7 +159,19 @@ public class OpportunityService {
                 opportunity.getUnitPrice()
         );
 
-        return OpportunityMapper.toResponse(opportunityRepository.save(opportunity));
+        Opportunity saved = opportunityRepository.save(opportunity);
+        User actor = userRepository.getReferenceById(principal.getId());
+        auditService.log(
+                actor,
+                toAuditRole(principal.getRole()),
+                AuditActions.OPPORTUNITY_UPDATED,
+                "Opportunity",
+                saved.getId(),
+                Map.of("status", statusBefore.name()),
+                Map.of("status", saved.getStatus().name(), "title", saved.getTitle())
+        );
+
+        return OpportunityMapper.toResponse(saved);
     }
 
     @Transactional
@@ -144,8 +181,22 @@ public class OpportunityService {
     })
     public OpportunityStatusResponse submitForReview(Long id, UserPrincipal principal) {
         Opportunity opportunity = findOwnedByIssuer(id, principal);
+        OpportunityStatus from = opportunity.getStatus();
         transition(opportunity, OpportunityStatus.UNDER_REVIEW);
-        return OpportunityMapper.toStatusResponse(opportunityRepository.save(opportunity));
+        Opportunity saved = opportunityRepository.save(opportunity);
+
+        User actor = userRepository.getReferenceById(principal.getId());
+        auditService.logStatusTransition(
+                actor,
+                AuditActorRole.ISSUER,
+                AuditActions.OPPORTUNITY_SUBMITTED,
+                "Opportunity",
+                saved.getId(),
+                from,
+                saved.getStatus()
+        );
+
+        return OpportunityMapper.toStatusResponse(saved);
     }
 
     @Transactional
@@ -155,6 +206,7 @@ public class OpportunityService {
     })
     public OpportunityStatusResponse review(Long id, ReviewOpportunityRequest request) {
         Opportunity opportunity = findById(id);
+        OpportunityStatus from = opportunity.getStatus();
         OpportunityStatus target = request.action() == ReviewAction.APPROVE
                 ? OpportunityStatus.APPROVED
                 : OpportunityStatus.DRAFT;
@@ -162,8 +214,23 @@ public class OpportunityService {
         transition(opportunity, target);
         opportunity.setReviewedAt(Instant.now());
         opportunity.setReviewComment(request.comment());
+        Opportunity saved = opportunityRepository.save(opportunity);
 
-        return OpportunityMapper.toStatusResponse(opportunityRepository.save(opportunity));
+        User actor = currentActor();
+        String action = request.action() == ReviewAction.APPROVE
+                ? AuditActions.OPPORTUNITY_APPROVED
+                : AuditActions.OPPORTUNITY_REJECTED;
+        auditService.logStatusTransition(
+                actor,
+                AuditActorRole.ADMIN,
+                action,
+                "Opportunity",
+                saved.getId(),
+                from,
+                saved.getStatus()
+        );
+
+        return OpportunityMapper.toStatusResponse(saved);
     }
 
     @Transactional
@@ -173,13 +240,26 @@ public class OpportunityService {
     })
     public OpportunityStatusResponse publish(Long id) {
         Opportunity opportunity = findById(id);
+        OpportunityStatus from = opportunity.getStatus();
         transition(opportunity, OpportunityStatus.LIVE);
 
         Instant now = Instant.now();
         opportunity.setPublishedAt(now);
         opportunity.setMaturityDate(LocalDate.ofInstant(now, ZoneOffset.UTC).plusDays(opportunity.getTenureDays()));
+        Opportunity saved = opportunityRepository.save(opportunity);
 
-        return OpportunityMapper.toStatusResponse(opportunityRepository.save(opportunity));
+        User actor = currentActor();
+        auditService.logStatusTransition(
+                actor,
+                AuditActorRole.ADMIN,
+                AuditActions.OPPORTUNITY_PUBLISHED,
+                "Opportunity",
+                saved.getId(),
+                from,
+                saved.getStatus()
+        );
+
+        return OpportunityMapper.toStatusResponse(saved);
     }
 
     @Transactional
@@ -196,6 +276,7 @@ public class OpportunityService {
         }
 
         Opportunity opportunity = findById(id);
+        OpportunityStatus from = opportunity.getStatus();
         transition(opportunity, request.targetStatus());
 
         Instant now = Instant.now();
@@ -205,8 +286,55 @@ public class OpportunityService {
         if (request.targetStatus() == OpportunityStatus.SETTLED) {
             opportunity.setSettledAt(now);
         }
+        Opportunity saved = opportunityRepository.save(opportunity);
 
-        return OpportunityMapper.toStatusResponse(opportunityRepository.save(opportunity));
+        User actor = currentActor();
+        if (request.targetStatus() == OpportunityStatus.MATURED) {
+            auditService.logStatusTransition(
+                    actor,
+                    AuditActorRole.ADMIN,
+                    AuditActions.OPPORTUNITY_MATURED,
+                    "Opportunity",
+                    saved.getId(),
+                    from,
+                    saved.getStatus()
+            );
+            portfolioService.maturePositionsForOpportunity(saved.getId(), actor);
+            outboxWriter.write(
+                    OutboxEventType.MATURITY_DUE,
+                    "Opportunity",
+                    saved.getId(),
+                    Map.of(
+                            "opportunityId", saved.getId(),
+                            "title", saved.getTitle(),
+                            "maturityDate", saved.getMaturityDate().toString()
+                    )
+            );
+        }
+        if (request.targetStatus() == OpportunityStatus.SETTLED) {
+            auditService.logStatusTransition(
+                    actor,
+                    AuditActorRole.ADMIN,
+                    AuditActions.OPPORTUNITY_SETTLED,
+                    "Opportunity",
+                    saved.getId(),
+                    from,
+                    saved.getStatus()
+            );
+            portfolioService.settlePositionsForOpportunity(saved.getId(), actor);
+            outboxWriter.write(
+                    OutboxEventType.SETTLEMENT_COMPLETE,
+                    "Opportunity",
+                    saved.getId(),
+                    Map.of(
+                            "opportunityId", saved.getId(),
+                            "title", saved.getTitle(),
+                            "settledAt", now.toString()
+                    )
+            );
+        }
+
+        return OpportunityMapper.toStatusResponse(saved);
     }
 
     @Transactional(readOnly = true)
@@ -322,5 +450,18 @@ public class OpportunityService {
                     "faceValue should be at least total units × unit price"
             );
         }
+    }
+
+    private User currentActor() {
+        UserPrincipal principal = SecurityUtils.requireCurrentUser();
+        return userRepository.getReferenceById(principal.getId());
+    }
+
+    private static AuditActorRole toAuditRole(Role role) {
+        return switch (role) {
+            case ADMIN -> AuditActorRole.ADMIN;
+            case ISSUER -> AuditActorRole.ISSUER;
+            case INVESTOR -> AuditActorRole.INVESTOR;
+        };
     }
 }
