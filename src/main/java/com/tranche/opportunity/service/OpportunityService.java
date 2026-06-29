@@ -358,7 +358,9 @@ public class OpportunityService {
     @Transactional(readOnly = true)
     @Cacheable(cacheNames = OpportunityCacheNames.DETAIL, key = "#id")
     public OpportunityResponse getById(Long id) {
-        return OpportunityMapper.toResponse(findById(id));
+        Opportunity opportunity = opportunityRepository.findWithIssuerById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Opportunity not found"));
+        return OpportunityMapper.toResponse(opportunity);
     }
 
     private void transition(Opportunity opportunity, OpportunityStatus target) {

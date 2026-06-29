@@ -7,6 +7,7 @@ import com.tranche.allocation.service.CommitmentService;
 import com.tranche.common.security.SecurityUtils;
 import com.tranche.common.security.UserPrincipal;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,8 +16,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
+@Validated
 @RestController
 @RequestMapping("/api/v1/opportunities")
 public class AllocationController {
@@ -30,7 +33,7 @@ public class AllocationController {
     @PostMapping("/{id}/commitments")
     @PreAuthorize("hasRole('INVESTOR')")
     public ResponseEntity<CommitmentResponse> placeCommitment(
-            @PathVariable Long id,
+            @PathVariable @Min(1) Long id,
             @RequestHeader("Idempotency-Key") String idempotencyKey,
             @Valid @RequestBody CommitmentRequest request
     ) {

@@ -26,6 +26,10 @@ tranche:
     expiration-ms: 3600000
   outbox:
     polling-enabled: false
+  rate-limit:
+    commitment:
+      enabled: true
+      requests-per-window: 100
 
 logging:
   level:
