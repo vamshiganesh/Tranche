@@ -44,22 +44,5 @@ public class IssuerProfileService {
         issuer.setRegistrationNumber(request.registrationNumber());
         issuerRepository.save(issuer);
 
-        return toResponse(issuer);
+        return IssuerMapper.toResponse(issuer);
     }
-
-    @Transactional(readOnly = true)
-    public IssuerProfileResponse getProfile(UUID userPublicId) {
-        Issuer issuer = issuerRepository.findByUser_PublicId(userPublicId)
-                .orElseThrow(() -> new ResourceNotFoundException("Issuer profile not found"));
-        return toResponse(issuer);
-    }
-
-    private IssuerProfileResponse toResponse(Issuer issuer) {
-        return new IssuerProfileResponse(
-                issuer.getId(),
-                issuer.getCompanyName(),
-                issuer.getRegistrationNumber(),
-                issuer.getUser().getPublicId()
-        );
-    }
-}

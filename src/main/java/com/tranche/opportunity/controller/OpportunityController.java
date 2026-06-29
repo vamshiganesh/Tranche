@@ -43,7 +43,7 @@ public class OpportunityController {
     @PreAuthorize("hasAnyRole('ISSUER', 'ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
     public OpportunityResponse create(@Valid @RequestBody CreateOpportunityRequest request) {
-        return opportunityService.create(request, currentUser());
+        return opportunityService.create(request, SecurityUtils.requireCurrentUser());
     }
 
     @PutMapping("/{id}")
@@ -52,7 +52,7 @@ public class OpportunityController {
             @PathVariable Long id,
             @Valid @RequestBody UpdateOpportunityRequest request
     ) {
-        return opportunityService.update(id, request, currentUser());
+        return opportunityService.update(id, request, SecurityUtils.requireCurrentUser());
     }
 
     @PostMapping("/{id}/submit")

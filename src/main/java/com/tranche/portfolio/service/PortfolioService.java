@@ -2,6 +2,7 @@ package com.tranche.portfolio.service;
 
 import com.tranche.audit.domain.AuditActions;
 import com.tranche.audit.domain.AuditActorRole;
+import com.tranche.audit.domain.AuditEntityTypes;
 import com.tranche.audit.service.AuditService;
 import com.tranche.auth.domain.User;
 import com.tranche.common.exception.ResourceNotFoundException;
@@ -49,20 +50,19 @@ public class PortfolioService {
         BigDecimal totalExpectedReturn = BigDecimal.ZERO;
         BigDecimal settledYieldSum = BigDecimal.ZERO;
         long settledCount = 0;
+        long activePositions = 0;
 
         for (PortfolioPosition position : positions) {
             totalInvested = totalInvested.add(position.getInvestedAmount());
             totalExpectedReturn = totalExpectedReturn.add(position.getExpectedReturn());
+            if (position.getStatus() == PortfolioStatus.ACTIVE) {
+                activePositions++;
+            }
             if (position.getStatus() == PortfolioStatus.SETTLED && position.getRealizedYield() != null) {
                 settledYieldSum = settledYieldSum.add(position.getRealizedYield());
                 settledCount++;
             }
         }
-
-        long activePositions = portfolioPositionRepository.countByInvestor_IdAndStatus(
-                investor.getId(),
-                PortfolioStatus.ACTIVE
-        );
 
         BigDecimal portfolioRealizedYield = settledCount > 0
                 ? settledYieldSum.divide(BigDecimal.valueOf(settledCount), 4, java.math.RoundingMode.HALF_UP)
@@ -107,7 +107,7 @@ public class PortfolioService {
                     actor,
                     AuditActorRole.SYSTEM,
                     AuditActions.PORTFOLIO_POSITION_MATURED,
-                    "PortfolioPosition",
+                    AuditEntityTypes.PORTFOLIO_POSITION,
                     position.getId(),
                     Map.of("status", before.name()),
                     Map.of("status", PortfolioStatus.MATURED.name(), "opportunityId", opportunityId)
@@ -142,7 +142,7 @@ public class PortfolioService {
                     actor,
                     AuditActorRole.SYSTEM,
                     AuditActions.PORTFOLIO_POSITION_SETTLED,
-                    "PortfolioPosition",
+                    AuditEntityTypes.PORTFOLIO_POSITION,
                     position.getId(),
                     Map.of("status", before.name()),
                     Map.of(

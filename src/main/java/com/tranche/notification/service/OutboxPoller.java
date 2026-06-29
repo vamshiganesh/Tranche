@@ -1,9 +1,9 @@
 package com.tranche.notification.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tranche.common.config.OutboxProperties;
 import com.tranche.common.dto.PageResponse;
+import com.tranche.common.util.JsonMapConverter;
 import com.tranche.notification.domain.OutboxEvent;
 import com.tranche.notification.domain.OutboxEventStatus;
 import com.tranche.notification.dto.OutboxEventResponse;
@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -26,7 +25,6 @@ import java.util.Map;
 public class OutboxPoller {
 
     private static final Logger log = LoggerFactory.getLogger(OutboxPoller.class);
-    private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() {};
 
     private final OutboxEventRepository outboxEventRepository;
     private final OutboxProperties outboxProperties;
@@ -43,6 +41,7 @@ public class OutboxPoller {
     }
 
     @Scheduled(fixedDelayString = "${tranche.outbox.poll-interval-ms:30000}")
+    @Transactional
     public void scheduledPoll() {
         if (!outboxProperties.pollingEnabled()) {
             return;
@@ -102,14 +101,6 @@ public class OutboxPoller {
     }
 
     private Map<String, Object> parsePayload(String json) {
-        if (json == null || json.isBlank()) {
-            return Collections.emptyMap();
-        }
-        try {
-            return objectMapper.readValue(json, MAP_TYPE);
-        } catch (Exception ex) {
-            log.warn("Failed to parse outbox payload for event {}", json, ex);
-            return Collections.emptyMap();
-        }
+        return JsonMapConverter.fromJson(objectMapper, json);
     }
 }
