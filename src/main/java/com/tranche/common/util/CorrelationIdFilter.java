@@ -30,10 +30,12 @@ public class CorrelationIdFilter extends OncePerRequestFilter {
                 correlationId = UUID.randomUUID().toString();
             }
             CorrelationIdHolder.set(correlationId);
+            org.slf4j.MDC.put("correlationId", correlationId);
             response.setHeader(CORRELATION_ID_HEADER, correlationId);
             filterChain.doFilter(request, response);
         } finally {
             CorrelationIdHolder.clear();
+            org.slf4j.MDC.remove("correlationId");
         }
     }
 }
