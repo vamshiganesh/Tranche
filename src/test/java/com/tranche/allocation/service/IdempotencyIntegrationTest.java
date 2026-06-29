@@ -2,65 +2,29 @@ package com.tranche.allocation.service;
 
 import com.tranche.allocation.dto.CommitmentRequest;
 import com.tranche.allocation.dto.CommitmentResult;
-import com.tranche.allocation.repository.AllocationRepository;
-import com.tranche.portfolio.repository.PortfolioPositionRepository;
-import com.tranche.allocation.repository.InvestmentOrderRepository;
-import com.tranche.audit.repository.AuditLogRepository;
-import com.tranche.auth.domain.User;
-import com.tranche.auth.repository.UserRepository;
-import com.tranche.common.domain.Role;
+import com.tranche.allocation.domain.FillStatus;
 import com.tranche.common.security.UserPrincipal;
-import com.tranche.investor.domain.InvestorProfile;
-import com.tranche.investor.repository.InvestorProfileRepository;
 import com.tranche.issuer.domain.Issuer;
 import com.tranche.issuer.repository.IssuerRepository;
-import com.tranche.notification.repository.OutboxEventRepository;
 import com.tranche.opportunity.domain.Opportunity;
-import com.tranche.opportunity.domain.OpportunityStatus;
-import com.tranche.opportunity.domain.RiskGrade;
-import com.tranche.opportunity.repository.OpportunityRepository;
-import com.tranche.support.LocalDatabaseIntegrationTest;
+import com.tranche.support.AbstractIntegrationTest;
+import com.tranche.support.OpportunityTestBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class IdempotencyIntegrationTest extends LocalDatabaseIntegrationTest {
+class IdempotencyIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private AllocationEngine allocationEngine;
 
     @Autowired
-    private OpportunityRepository opportunityRepository;
-
-    @Autowired
-    private InvestorProfileRepository investorProfileRepository;
-
-    @Autowired
     private IssuerRepository issuerRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private InvestmentOrderRepository investmentOrderRepository;
-
-    @Autowired
-    private PortfolioPositionRepository portfolioPositionRepository;
-
-    @Autowired
-    private AllocationRepository allocationRepository;
-
-    @Autowired
-    private AuditLogRepository auditLogRepository;
-
-    @Autowired
-    private OutboxEventRepository outboxEventRepository;
 
     private Long opportunityId;
     private UserPrincipal investor;
@@ -69,43 +33,18 @@ class IdempotencyIntegrationTest extends LocalDatabaseIntegrationTest {
     @BeforeEach
     void setUp() {
         resetInvestorWallets();
-        portfolioPositionRepository.deleteAll();
-        allocationRepository.deleteAll();
-        investmentOrderRepository.deleteAll();
-        auditLogRepository.deleteAll();
-        outboxEventRepository.deleteAll();
-        opportunityRepository.deleteAll();
+        clearTransactionalData();
 
         Issuer issuer = issuerRepository.findAll().getFirst();
-        Opportunity opportunity = new Opportunity();
-        opportunity.setIssuer(issuer);
-        opportunity.setTitle("Idempotency test invoice");
-        opportunity.setFaceValue(new BigDecimal("1000000.0000"));
-        opportunity.setDiscountRate(new BigDecimal("8.5000"));
-        opportunity.setTenureDays(90);
-        opportunity.setMinimumLot(new BigDecimal("10000.0000"));
-        opportunity.setRiskGrade(RiskGrade.A);
-        opportunity.setTotalUnits(100);
-        opportunity.setRemainingUnits(100);
-        opportunity.setUnitPrice(new BigDecimal("10000.0000"));
-        opportunity.setStatus(OpportunityStatus.LIVE);
-        opportunity.setMaturityDate(LocalDate.now().plusDays(90));
+        Opportunity opportunity = OpportunityTestBuilder.anOpportunity()
+                .issuer(issuer)
+                .title("Idempotency test invoice")
+                .live()
+                .build();
         opportunityId = opportunityRepository.save(opportunity).getId();
 
-        User user = userRepository.findAll().stream()
-                .filter(u -> u.getRole() == Role.INVESTOR)
-                .findFirst()
-                .orElseThrow();
-        investor = UserPrincipal.from(user);
+        investor = principal(com.tranche.support.SeedUsers.INVESTOR1_EMAIL);
         idempotencyKey = UUID.randomUUID();
-    }
-
-    private void resetInvestorWallets() {
-        for (InvestorProfile profile : investorProfileRepository.findAll()) {
-            profile.setWalletBalance(new BigDecimal("500000.0000"));
-            profile.setLockedBalance(BigDecimal.ZERO);
-            investorProfileRepository.save(profile);
-        }
     }
 
     @Test
