@@ -39,7 +39,7 @@ public class InvestmentOrder {
     @JoinColumn(name = "investor_id", nullable = false)
     private User investor;
 
-    @Column(name = "idempotency_key", nullable = false, length = 36)
+    @Column(name = "idempotency_key", nullable = false, length = 36, columnDefinition = "CHAR(36)")
     private String idempotencyKey;
 
     @Column(name = "units_requested", nullable = false)
