@@ -1,0 +1,45 @@
+# Build
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Spring Boot
+application-local.yml
+application-local.properties
+
+# Test / coverage
+.gradle/
+build/
+out/
+jacoco.exec
+*.exec
+
+# Maven wrapper (if generated locally)
+.mvn/timing.properties
