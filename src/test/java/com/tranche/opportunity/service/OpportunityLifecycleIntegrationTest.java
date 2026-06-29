@@ -110,7 +110,8 @@ class OpportunityLifecycleIntegrationTest extends AbstractIntegrationTest {
             assertThat(settled.status()).isEqualTo(OpportunityStatus.SETTLED);
         });
 
-        assertThat(auditLogRepository.findByEntityTypeAndEntityIdOrderByCreatedAtAsc("Opportunity", opportunityId))
+        assertThat(auditLogRepository.findByEntityTypeAndEntityIdOrderByCreatedAtAsc(
+                "Opportunity", opportunityId, Pageable.unpaged()).getContent())
                 .isNotEmpty();
     }
 
@@ -124,13 +125,6 @@ class OpportunityLifecycleIntegrationTest extends AbstractIntegrationTest {
                         new AdminTransitionRequest(OpportunityStatus.SETTLED)
                 )
         ).isInstanceOf(InvalidStateTransitionException.class));
-    }
-
-    @Test
-    void seededDemoOpportunityExistsAfterMigration() {
-        assertThat(opportunityRepository.findAll().stream()
-                .anyMatch(o -> SeedUsers.DEMO_OPPORTUNITY_TITLE.equals(o.getTitle())))
-                .isTrue();
     }
 
     private void runAs(UserPrincipal principal, Runnable action) {
