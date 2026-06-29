@@ -21,6 +21,8 @@ tranche:
   jwt:
     secret: dev-only-jwt-secret-key-minimum-32-characters-long
     expiration-ms: 86400000
+  investor:
+    default-wallet-balance: 100000
 
 management:
   endpoint:
