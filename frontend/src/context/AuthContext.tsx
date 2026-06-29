@@ -19,6 +19,7 @@ interface AuthState {
   refreshUser: () => Promise<void>
 }
 
+
 const AuthContext = createContext<AuthState | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
