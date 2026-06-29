@@ -31,7 +31,17 @@ docker compose --profile full up -d --build
 
 ## 2. Login helpers
 
-Save tokens for each role:
+Each investor wallet is seeded with **$3,000,000** (enough for the 85-unit pre-fill at $25k/unit).
+
+**Important:** `export` variables are per-terminal. For the two-terminal race, load tokens in **both** terminals.
+
+```bash
+source scripts/demo-env.sh
+```
+
+That sets `ADMIN_TOKEN`, `ISSUER_TOKEN`, `INV1_TOKEN`, and `INV2_TOKEN`.
+
+Or login manually:
 
 ```bash
 export ADMIN_TOKEN=$(curl -s -X POST http://localhost:8080/api/v1/auth/login \
@@ -53,6 +63,15 @@ export INV2_TOKEN=$(curl -s -X POST http://localhost:8080/api/v1/auth/login \
   -H 'Content-Type: application/json' \
   -d '{"email":"investor2@tranche.local","password":"Password123!"}' \
   | jq -r .accessToken)
+```
+
+If you already had a database from before wallet increase, restart the app so Flyway **V4** runs, or apply manually:
+
+```sql
+UPDATE investor_profiles ip
+JOIN users u ON u.id = ip.user_id
+SET ip.wallet_balance = 3000000, ip.locked_balance = 0
+WHERE u.email IN ('investor1@tranche.local', 'investor2@tranche.local');
 ```
 
 ---
@@ -115,11 +134,14 @@ curl -s -X POST "http://localhost:8080/api/v1/opportunities/$OPP_ID/commitments"
 
 ### Option B — concurrent race (run in two terminals)
 
-Both investors request **10 units** at the same time when **15 remain**:
+**In both terminals**, run `source scripts/demo-env.sh` (or export tokens manually).
+
+Pre-fill 85 units first (Option A), then both investors request **10 units** when **15 remain**:
 
 **Terminal 1 (investor 1):**
 
 ```bash
+source scripts/demo-env.sh   # if not already loaded
 curl -s -X POST "http://localhost:8080/api/v1/opportunities/$OPP_ID/commitments" \
   -H "Authorization: Bearer $INV1_TOKEN" \
   -H "Idempotency-Key: $(uuidgen)" \
@@ -130,6 +152,7 @@ curl -s -X POST "http://localhost:8080/api/v1/opportunities/$OPP_ID/commitments"
 **Terminal 2 (investor 2)** — run immediately:
 
 ```bash
+source scripts/demo-env.sh   # required — INV2_TOKEN is empty otherwise
 curl -s -X POST "http://localhost:8080/api/v1/opportunities/$OPP_ID/commitments" \
   -H "Authorization: Bearer $INV2_TOKEN" \
   -H "Idempotency-Key: $(uuidgen)" \
@@ -253,3 +276,15 @@ Key integration suites:
 3. **Auditability** — every transition and allocation logged with correlation ID.
 4. **Outbox** — investment/maturity events emitted transactionally, polled async.
 5. **Defense in depth** — validation, rate limits, RBAC, safe error envelope (see `docs/non-functional-design.md`).
+
+---
+
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `INSUFFICIENT_FUNDS` on 85-unit commit | Wallet was $500k (max ~20 units at $25k) | Restart app for V4 migration, or run SQL above |
+| `UNAUTHORIZED` in second terminal | `$INV2_TOKEN` not exported in that shell | `source scripts/demo-env.sh` in that terminal |
+| `jq: null` for `OPP_ID` | Opportunity already published (not `DRAFT`) | `curl ...?status=LIVE` or use known id, e.g. `export OPP_ID=2` |
+| Race shows 90 units left | Pre-fill step failed | Complete Option A successfully before Option B |
+| 19 tests skipped in `mvn test` | Testcontainers can't reach Docker from WSL | Enable Docker Desktop WSL integration, or run tests in CI |

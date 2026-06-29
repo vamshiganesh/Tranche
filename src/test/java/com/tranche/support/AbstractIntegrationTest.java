@@ -81,7 +81,7 @@ public abstract class AbstractIntegrationTest {
 
     protected void resetInvestorWallets() {
         for (InvestorProfile profile : investorProfileRepository.findAll()) {
-            profile.setWalletBalance(new BigDecimal("500000.0000"));
+            profile.setWalletBalance(new BigDecimal("3000000.0000"));
             profile.setLockedBalance(BigDecimal.ZERO);
             investorProfileRepository.save(profile);
         }

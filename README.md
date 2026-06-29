@@ -155,7 +155,7 @@ docker compose --profile full up -d --build
 
 ### Seeded demo users
 
-All passwords: **`Password123!`**
+Each investor wallet is seeded with **$3,000,000** (supports the full demo race at $25k/unit).
 
 | Email | Role |
 |---|---|
