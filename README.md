@@ -185,26 +185,6 @@ Environment variables will be documented in `.env.example` during Phase 1 scaffo
 
 ---
 
-## Interview Talking Points
-
-1. **Why allocation engine, not marketplace?** Marketplaces focus on discovery and listings. Tranche focuses on the hard distributed-systems problem: fair, atomic unit allocation under concurrency with financial correctness.
-
-2. **Concurrency strategy** — Explain pessimistic vs optimistic locking trade-offs on the opportunity row, why allocation runs in a single DB transaction, and how partial fills are computed deterministically.
-
-3. **Idempotency design** — `Idempotency-Key` stored with unique constraint; replay returns cached response; prevents double-spend on network retries.
-
-4. **State machine rigor** — Invalid lifecycle transitions rejected at domain layer; audit log captures every transition with actor and correlation ID.
-
-5. **Transactional outbox** — Notification events written in the same transaction as allocation; separate consumer delivers asynchronously without risking lost events.
-
-6. **Modular monolith rationale** — Clear module boundaries enable future extraction to microservices without premature operational complexity.
-
-7. **Indexing strategy** — Composite indexes on `(status, risk_grade, maturity_date)` for listings and `(opportunity_id, investor_id, created_at)` for order history.
-
-8. **Test strategy** — Testcontainers for integration tests; concurrent commitment stress tests to prove no overbooking.
-
----
-
 ## License
 
-MIT (or as specified by project owner)
+MIT 
