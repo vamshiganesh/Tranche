@@ -14,7 +14,7 @@ import type { CurrentUser } from '../api/types'
 interface AuthState {
   user: CurrentUser | null
   loading: boolean
-  login: (email: string, password: string) => Promise<void>
+  login: (email: string, password: string) => Promise<CurrentUser>
   logout: () => void
   refreshUser: () => Promise<void>
 }
@@ -49,6 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setStoredToken(res.accessToken)
     const me = await fetchMe()
     setUser(me)
+    return me
   }, [])
 
   const logout = useCallback(() => {

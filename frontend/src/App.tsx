@@ -1,8 +1,9 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AppShell } from './components/AppShell'
-import { ProtectedRoute, RootRedirect } from './components/ProtectedRoute'
+import { ProtectedRoute } from './components/ProtectedRoute'
 import { AuthProvider } from './context/AuthContext'
 import { ToastProvider } from './context/ToastContext'
+import { LandingPage } from './pages/LandingPage'
 import { LoginPage } from './pages/LoginPage'
 import { AdminOpportunitiesPage } from './pages/admin/AdminOpportunitiesPage'
 import { AdminOpportunityDetailPage } from './pages/admin/AdminOpportunityDetailPage'
@@ -20,11 +21,10 @@ export default function App() {
       <AuthProvider>
         <ToastProvider>
           <Routes>
+            <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
 
             <Route element={<ProtectedRoute />}>
-              <Route path="/" element={<RootRedirect />} />
-
               <Route element={<ProtectedRoute roles={['INVESTOR']} />}>
                 <Route element={<AppShell title="Investor workspace" />}>
                   <Route path="/marketplace" element={<MarketplacePage />} />

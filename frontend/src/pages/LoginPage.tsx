@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { ApiClientError } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 
@@ -31,8 +31,12 @@ export function LoginPage() {
     setError(null)
     setSubmitting(true)
     try {
-      await login(email, password)
-      navigate('/')
+      const me = await login(email, password)
+      const dest =
+        me.role === 'ADMIN' ? '/admin'
+        : me.role === 'ISSUER' ? '/issuer'
+        : '/marketplace'
+      navigate(dest)
     } catch (err) {
       if (err instanceof ApiClientError) {
         setError(err.message)
@@ -53,6 +57,11 @@ export function LoginPage() {
     <div className="login-page">
       <section className="login-hero">
         <div>
+          <p style={{ marginBottom: 'var(--space-lg)' }}>
+            <Link to="/" style={{ color: 'var(--ink-faint)', fontSize: '0.875rem' }}>
+              ← Back to home
+            </Link>
+          </p>
           <h1>Fair allocation under pressure.</h1>
           <p className="lead">
             Tranche coordinates invoice commitments when demand exceeds supply. Every unit
