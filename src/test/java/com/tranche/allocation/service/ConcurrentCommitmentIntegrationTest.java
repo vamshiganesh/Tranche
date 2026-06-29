@@ -2,28 +2,18 @@ package com.tranche.allocation.service;
 
 import com.tranche.allocation.dto.CommitmentRequest;
 import com.tranche.allocation.dto.CommitmentResult;
-import com.tranche.allocation.repository.AllocationRepository;
-import com.tranche.portfolio.repository.PortfolioPositionRepository;
-import com.tranche.allocation.repository.InvestmentOrderRepository;
-import com.tranche.auth.domain.User;
-import com.tranche.auth.repository.UserRepository;
-import com.tranche.common.domain.Role;
 import com.tranche.common.security.UserPrincipal;
-import com.tranche.investor.domain.InvestorProfile;
-import com.tranche.investor.repository.InvestorProfileRepository;
 import com.tranche.issuer.domain.Issuer;
 import com.tranche.issuer.repository.IssuerRepository;
 import com.tranche.opportunity.domain.Opportunity;
-import com.tranche.opportunity.domain.OpportunityStatus;
-import com.tranche.opportunity.domain.RiskGrade;
 import com.tranche.opportunity.repository.OpportunityRepository;
-import com.tranche.support.LocalDatabaseIntegrationTest;
+import com.tranche.support.AbstractIntegrationTest;
+import com.tranche.support.OpportunityTestBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -35,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class ConcurrentCommitmentIntegrationTest extends LocalDatabaseIntegrationTest {
+class ConcurrentCommitmentIntegrationTest extends AbstractIntegrationTest {
 
     private static final int TOTAL_UNITS = 100;
     private static final int THREADS = 20;
@@ -45,25 +35,7 @@ class ConcurrentCommitmentIntegrationTest extends LocalDatabaseIntegrationTest {
     private AllocationEngine allocationEngine;
 
     @Autowired
-    private OpportunityRepository opportunityRepository;
-
-    @Autowired
-    private InvestorProfileRepository investorProfileRepository;
-
-    @Autowired
     private IssuerRepository issuerRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private InvestmentOrderRepository investmentOrderRepository;
-
-    @Autowired
-    private PortfolioPositionRepository portfolioPositionRepository;
-
-    @Autowired
-    private AllocationRepository allocationRepository;
 
     private Long opportunityId;
     private List<UserPrincipal> investors;
@@ -71,40 +43,19 @@ class ConcurrentCommitmentIntegrationTest extends LocalDatabaseIntegrationTest {
     @BeforeEach
     void setUp() {
         resetInvestorWallets();
-        portfolioPositionRepository.deleteAll();
-        allocationRepository.deleteAll();
-        investmentOrderRepository.deleteAll();
-        opportunityRepository.deleteAll();
+        clearTransactionalData();
 
         Issuer issuer = issuerRepository.findAll().getFirst();
-        Opportunity opportunity = new Opportunity();
-        opportunity.setIssuer(issuer);
-        opportunity.setTitle("Concurrent test invoice");
-        opportunity.setFaceValue(new BigDecimal("1000000.0000"));
-        opportunity.setDiscountRate(new BigDecimal("8.5000"));
-        opportunity.setTenureDays(90);
-        opportunity.setMinimumLot(new BigDecimal("10000.0000"));
-        opportunity.setRiskGrade(RiskGrade.A);
-        opportunity.setTotalUnits(TOTAL_UNITS);
-        opportunity.setRemainingUnits(TOTAL_UNITS);
-        opportunity.setUnitPrice(new BigDecimal("10000.0000"));
-        opportunity.setStatus(OpportunityStatus.LIVE);
-        opportunity.setMaturityDate(LocalDate.now().plusDays(90));
+        Opportunity opportunity = OpportunityTestBuilder.anOpportunity()
+                .issuer(issuer)
+                .title("Concurrent test invoice")
+                .totalUnits(TOTAL_UNITS)
+                .live()
+                .build();
         opportunityId = opportunityRepository.save(opportunity).getId();
 
-        investors = userRepository.findAll().stream()
-                .filter(user -> user.getRole() == Role.INVESTOR)
-                .map(UserPrincipal::from)
-                .toList();
+        investors = investorPrincipals();
         assertThat(investors).hasSizeGreaterThanOrEqualTo(2);
-    }
-
-    private void resetInvestorWallets() {
-        for (InvestorProfile profile : investorProfileRepository.findAll()) {
-            profile.setWalletBalance(new BigDecimal("500000.0000"));
-            profile.setLockedBalance(BigDecimal.ZERO);
-            investorProfileRepository.save(profile);
-        }
     }
 
     @Test
@@ -113,6 +64,7 @@ class ConcurrentCommitmentIntegrationTest extends LocalDatabaseIntegrationTest {
         CountDownLatch startGate = new CountDownLatch(1);
         List<Future<CommitmentResult>> futures = new ArrayList<>();
         AtomicInteger successes = new AtomicInteger();
+        AtomicInteger failures = new AtomicInteger();
 
         for (int i = 0; i < THREADS; i++) {
             UserPrincipal investor = investors.get(i % investors.size());
@@ -136,7 +88,8 @@ class ConcurrentCommitmentIntegrationTest extends LocalDatabaseIntegrationTest {
                     }
                     return result;
                 } catch (Exception ex) {
-                    return null;
+                    failures.incrementAndGet();
+                    throw ex;
                 }
             }));
         }
@@ -159,5 +112,6 @@ class ConcurrentCommitmentIntegrationTest extends LocalDatabaseIntegrationTest {
                 .filter(order -> order.getUnitsAllocated() > 0)
                 .count();
         assertThat(confirmedOrders).isEqualTo(successes.get());
+        assertThat(failures.get()).isZero();
     }
 }
