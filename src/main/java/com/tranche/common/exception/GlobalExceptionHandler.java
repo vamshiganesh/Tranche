@@ -66,7 +66,7 @@ public class GlobalExceptionHandler {
             case INVALID_CREDENTIALS, UNAUTHORIZED -> HttpStatus.UNAUTHORIZED;
             case FORBIDDEN, INVALID_ROLE -> HttpStatus.FORBIDDEN;
             case NOT_FOUND -> HttpStatus.NOT_FOUND;
-            case CONFLICT, PROFILE_ALREADY_EXISTS -> HttpStatus.CONFLICT;
+            case CONFLICT, PROFILE_ALREADY_EXISTS, INVALID_STATE_TRANSITION -> HttpStatus.CONFLICT;
             default -> HttpStatus.INTERNAL_SERVER_ERROR;
         };
     }
