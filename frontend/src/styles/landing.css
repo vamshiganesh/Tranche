@@ -36,7 +36,7 @@
   gap: var(--space-md);
   min-width: 0;
   padding: 0.625rem 0.625rem 0.625rem 1.125rem;
-  border-radius: 100px;
+  border-radius: var(--radius-md);
   border: 1px solid rgba(20, 18, 16, 0.08);
   background: rgba(247, 244, 239, 0.88);
   backdrop-filter: blur(16px) saturate(1.2);
