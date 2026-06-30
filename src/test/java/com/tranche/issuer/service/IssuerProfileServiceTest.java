@@ -3,6 +3,8 @@ package com.tranche.issuer.service;
 import com.tranche.auth.domain.User;
 import com.tranche.auth.repository.UserRepository;
 import com.tranche.common.domain.Role;
+import com.tranche.common.domain.VerificationStatus;
+import com.tranche.common.exception.BusinessException;
 import com.tranche.common.exception.ConflictException;
 import com.tranche.common.exception.ForbiddenException;
 import com.tranche.issuer.domain.Issuer;
@@ -20,6 +22,8 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -29,6 +33,8 @@ class IssuerProfileServiceTest {
     private IssuerRepository issuerRepository;
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private com.tranche.audit.service.AuditService auditService;
 
     @InjectMocks
     private IssuerProfileService issuerProfileService;
@@ -53,6 +59,29 @@ class IssuerProfileServiceTest {
 
         assertThat(response.companyName()).isEqualTo("Acme Corp");
         assertThat(response.userId()).isEqualTo(publicId);
+    }
+
+    @Test
+    void resubmitProfileAfterRejection() {
+        UUID publicId = UUID.randomUUID();
+        User user = issuerUser(publicId);
+        Issuer issuer = new Issuer();
+        issuer.setUser(user);
+        issuer.setCompanyName("Old Corp");
+        issuer.setVerificationStatus(VerificationStatus.REJECTED);
+
+        when(userRepository.findByPublicId(publicId)).thenReturn(Optional.of(user));
+        when(issuerRepository.findByUser_PublicId(publicId)).thenReturn(Optional.of(issuer));
+        when(issuerRepository.save(any(Issuer.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        var response = issuerProfileService.resubmitProfile(
+                publicId,
+                new CreateIssuerProfileRequest("New Corp", "REG-999")
+        );
+
+        assertThat(response.companyName()).isEqualTo("New Corp");
+        assertThat(response.verificationStatus()).isEqualTo(VerificationStatus.PENDING);
+        verify(auditService).log(any(), any(), any(), any(), any(), any(), any());
     }
 
     @Test
@@ -83,6 +112,23 @@ class IssuerProfileServiceTest {
                 publicId,
                 new CreateIssuerProfileRequest("Acme Corp", null)
         )).isInstanceOf(ConflictException.class);
+    }
+
+    @Test
+    void resubmitRejectsWhenNotRejected() {
+        UUID publicId = UUID.randomUUID();
+        User user = issuerUser(publicId);
+        Issuer issuer = new Issuer();
+        issuer.setUser(user);
+        issuer.setVerificationStatus(VerificationStatus.PENDING);
+
+        when(userRepository.findByPublicId(publicId)).thenReturn(Optional.of(user));
+        when(issuerRepository.findByUser_PublicId(publicId)).thenReturn(Optional.of(issuer));
+
+        assertThatThrownBy(() -> issuerProfileService.resubmitProfile(
+                publicId,
+                new CreateIssuerProfileRequest("Acme Corp", null)
+        )).isInstanceOf(BusinessException.class);
     }
 
     private User issuerUser(UUID publicId) {
