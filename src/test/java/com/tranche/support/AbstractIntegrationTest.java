@@ -7,6 +7,7 @@ import com.tranche.audit.repository.AuditLogRepository;
 import com.tranche.auth.domain.User;
 import com.tranche.auth.repository.UserRepository;
 import com.tranche.common.domain.Role;
+import com.tranche.common.domain.VerificationStatus;
 import com.tranche.common.security.UserPrincipal;
 import com.tranche.investor.domain.InvestorProfile;
 import com.tranche.investor.repository.InvestorProfileRepository;
@@ -21,6 +22,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.math.BigDecimal;
