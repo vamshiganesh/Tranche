@@ -3,12 +3,11 @@ import { Link, useNavigate } from 'react-router-dom'
 import { createOpportunity } from '../../api/opportunities'
 import type { RiskGrade } from '../../api/types'
 import { ApiClientError } from '../../api/client'
+import { RiskGradeSelect } from '../../components/RiskGradeSelect'
 import { VerificationCallout } from '../../components/VerificationCallout'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { computeUnitPrice, toApiDecimal } from '../../lib/format'
-
-const RISK_GRADES: RiskGrade[] = ['A', 'B', 'C', 'D']
 
 export function CreateOpportunityPage() {
   const { user } = useAuth()
@@ -176,18 +175,11 @@ export function CreateOpportunityPage() {
             </div>
             <div className="field">
               <label htmlFor="riskGrade">Risk grade</label>
-              <select
+              <RiskGradeSelect
                 id="riskGrade"
-                className="input"
                 value={riskGrade}
-                onChange={(e) => setRiskGrade(e.target.value as RiskGrade)}
-              >
-                {RISK_GRADES.map((g) => (
-                  <option key={g} value={g}>
-                    Grade {g}
-                  </option>
-                ))}
-              </select>
+                onChange={setRiskGrade}
+              />
             </div>
             <div className="field">
               <label>Unit price (computed)</label>
