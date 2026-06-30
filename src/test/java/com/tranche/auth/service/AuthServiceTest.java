@@ -5,12 +5,14 @@ import com.tranche.auth.dto.LoginRequest;
 import com.tranche.auth.dto.RegisterRequest;
 import com.tranche.auth.repository.UserRepository;
 import com.tranche.common.domain.Role;
+import com.tranche.common.domain.VerificationStatus;
 import com.tranche.common.exception.BusinessException;
 import com.tranche.common.exception.ConflictException;
 import com.tranche.common.exception.ForbiddenException;
 import com.tranche.investor.domain.InvestorProfile;
 import com.tranche.investor.repository.InvestorProfileRepository;
 import com.tranche.investor.service.InvestorProfileService;
+import com.tranche.issuer.repository.IssuerRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.math.BigDecimal;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -39,9 +42,13 @@ class AuthServiceTest {
     @Mock
     private InvestorProfileRepository investorProfileRepository;
     @Mock
+    private IssuerRepository issuerRepository;
+    @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
     private JwtService jwtService;
+    @Mock
+    private EmailVerificationService emailVerificationService;
 
     @InjectMocks
     private AuthService authService;
@@ -55,6 +62,7 @@ class AuthServiceTest {
             user.setId(10L);
             return user;
         });
+        when(emailVerificationService.issueVerificationCode(any(User.class))).thenReturn("123456");
 
         var response = authService.register(new RegisterRequest(
                 "investor@example.com",
@@ -65,7 +73,9 @@ class AuthServiceTest {
 
         assertThat(response.email()).isEqualTo("investor@example.com");
         assertThat(response.role()).isEqualTo(Role.INVESTOR);
+        assertThat(response.emailVerificationRequired()).isTrue();
         verify(investorProfileService).createForUser(any(User.class));
+        verify(emailVerificationService).issueVerificationCode(any(User.class));
     }
 
     @Test
@@ -73,6 +83,7 @@ class AuthServiceTest {
         when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
         when(userRepository.existsByEmail("issuer@example.com")).thenReturn(false);
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(emailVerificationService.issueVerificationCode(any(User.class))).thenReturn("123456");
 
         authService.register(new RegisterRequest(
                 "issuer@example.com",
@@ -108,14 +119,7 @@ class AuthServiceTest {
 
     @Test
     void loginReturnsJwtForValidCredentials() {
-        User user = new User();
-        user.setId(1L);
-        user.setPublicId(java.util.UUID.randomUUID());
-        user.setEmail("investor@example.com");
-        user.setPasswordHash("encoded-password");
-        user.setFullName("Jane Investor");
-        user.setRole(Role.INVESTOR);
-        user.setEnabled(true);
+        User user = verifiedUser();
 
         when(userRepository.findByEmail("investor@example.com")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("Password123!", "encoded-password")).thenReturn(true);
@@ -129,11 +133,20 @@ class AuthServiceTest {
     }
 
     @Test
+    void loginRejectsUnverifiedEmail() {
+        User user = verifiedUser();
+        user.setEmailVerified(false);
+
+        when(userRepository.findByEmail("investor@example.com")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("Password123!", "encoded-password")).thenReturn(true);
+
+        assertThatThrownBy(() -> authService.login(new LoginRequest("investor@example.com", "Password123!")))
+                .isInstanceOf(BusinessException.class);
+    }
+
+    @Test
     void loginRejectsInvalidPassword() {
-        User user = new User();
-        user.setEmail("investor@example.com");
-        user.setPasswordHash("encoded-password");
-        user.setEnabled(true);
+        User user = verifiedUser();
 
         when(userRepository.findByEmail("investor@example.com")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(false);
@@ -144,22 +157,35 @@ class AuthServiceTest {
 
     @Test
     void getCurrentUserIncludesWalletBalanceForInvestor() {
-        java.util.UUID publicId = java.util.UUID.randomUUID();
-        User user = new User();
-        user.setId(1L);
+        UUID publicId = UUID.randomUUID();
+        User user = verifiedUser();
         user.setPublicId(publicId);
-        user.setEmail("investor@example.com");
-        user.setFullName("Jane Investor");
-        user.setRole(Role.INVESTOR);
 
         InvestorProfile profile = new InvestorProfile();
         profile.setWalletBalance(new BigDecimal("500000.0000"));
+        profile.setKycStatus(VerificationStatus.APPROVED);
 
         when(userRepository.findByPublicId(publicId)).thenReturn(Optional.of(user));
         when(investorProfileRepository.findByUser_Id(1L)).thenReturn(Optional.of(profile));
+        when(issuerRepository.findByUser_Id(1L)).thenReturn(Optional.empty());
 
         var response = authService.getCurrentUser(publicId);
 
         assertThat(response.walletBalance()).isEqualByComparingTo("500000.0000");
+        assertThat(response.kycStatus()).isEqualTo(VerificationStatus.APPROVED);
+        assertThat(response.emailVerified()).isTrue();
+    }
+
+    private User verifiedUser() {
+        User user = new User();
+        user.setId(1L);
+        user.setPublicId(UUID.randomUUID());
+        user.setEmail("investor@example.com");
+        user.setPasswordHash("encoded-password");
+        user.setFullName("Jane Investor");
+        user.setRole(Role.INVESTOR);
+        user.setEnabled(true);
+        user.setEmailVerified(true);
+        return user;
     }
 }
