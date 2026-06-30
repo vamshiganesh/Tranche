@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { register } from '../api/auth'
 import { ApiClientError } from '../api/client'
+import { RoleSelect } from '../components/RoleSelect'
 import type { Role } from '../api/types'
 
 export function RegisterPage() {
@@ -94,16 +95,8 @@ export function RegisterPage() {
               />
             </div>
             <div className="field">
-              <label htmlFor="role">I am a</label>
-              <select
-                id="role"
-                className="input"
-                value={role}
-                onChange={(e) => setRole(e.target.value as Role)}
-              >
-                <option value="INVESTOR">Investor</option>
-                <option value="ISSUER">Issuer</option>
-              </select>
+              <label id="role-label">I am a</label>
+              <RoleSelect value={role} onChange={setRole} />
             </div>
             <button type="submit" className="btn btn-ink btn-block" disabled={submitting}>
               {submitting ? 'Creating account…' : 'Create account'}

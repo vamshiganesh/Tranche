@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { listOpportunities } from '../../api/opportunities'
 import type { OpportunitySummary } from '../../api/types'
 import { useAuth } from '../../context/AuthContext'
 import { StatusBadge } from '../../components/StatusBadge'
+import { VerificationCallout } from '../../components/VerificationCallout'
 import { formatCurrency, formatDate } from '../../lib/format'
 
 function actionLabel(status: OpportunitySummary['status']): string {
@@ -16,6 +17,9 @@ export function IssuerDashboardPage() {
   const navigate = useNavigate()
   const [items, setItems] = useState<OpportunitySummary[]>([])
   const [loading, setLoading] = useState(true)
+
+  const verificationStatus = user?.issuerVerificationStatus
+  const canCreate = verificationStatus === 'APPROVED'
 
   useEffect(() => {
     listOpportunities({ size: 100 })
@@ -33,35 +37,49 @@ export function IssuerDashboardPage() {
 
   return (
     <>
-      {user?.issuerVerificationStatus === 'PENDING' && (
-        <div className="card onboarding-banner" style={{ marginBottom: 'var(--space-lg)' }}>
-          <h3>Company verification pending</h3>
-          <p>
-            An administrator must approve your company profile before you can create invoice
-            opportunities.
-          </p>
-        </div>
-      )}
-      <header className="page-header">
-        <h2>My invoices</h2>
-        <p>Create opportunities and submit them for platform review.</p>
-      </header>
-
-      <div style={{ marginBottom: 'var(--space-lg)' }}>
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={() => navigate('/issuer/new')}
+      {verificationStatus && verificationStatus !== 'APPROVED' && (
+        <VerificationCallout
+          status={verificationStatus}
+          title="Company verification"
+          action={
+            verificationStatus === 'REJECTED' ? (
+              <Link to="/issuer/onboarding" className="btn btn-primary btn-sm">
+                Update profile
+              </Link>
+            ) : undefined
+          }
         >
-          New opportunity
-        </button>
-      </div>
+          {verificationStatus === 'REJECTED'
+            ? 'Your company profile was not approved. Update your details and resubmit for review before creating opportunities.'
+            : 'An administrator is reviewing your company profile. You can create opportunities once approved.'}
+        </VerificationCallout>
+      )}
+
+      <header className="page-header page-header-row">
+        <div>
+          <h2>My invoices</h2>
+          <p>Create opportunities and submit them for platform review.</p>
+        </div>
+        {canCreate && (
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => navigate('/issuer/new')}
+          >
+            New opportunity
+          </button>
+        )}
+      </header>
 
       <div className="card">
         {items.length === 0 ? (
           <div className="empty-state">
             <h3>No opportunities yet</h3>
-            <p>Create your first invoice opportunity to begin the review process.</p>
+            <p>
+              {canCreate
+                ? 'Create your first invoice opportunity to begin the review process.'
+                : 'Complete company verification to start listing invoice opportunities.'}
+            </p>
           </div>
         ) : (
           <div className="table-wrap">
