@@ -39,8 +39,23 @@ export function CustomScrollbar() {
   useEffect(() => {
     document.documentElement.classList.add('native-scrollbar-hidden')
 
-    update()
-    window.addEventListener('scroll', update, { passive: true })
+    let frame = 0
+    function loop() {
+      setMetrics((prev) => {
+        const next = readMetrics()
+        if (
+          prev.visible === next.visible &&
+          prev.thumbTop === next.thumbTop &&
+          prev.thumbHeight === next.thumbHeight
+        ) {
+          return prev
+        }
+        return next
+      })
+      frame = requestAnimationFrame(loop)
+    }
+    frame = requestAnimationFrame(loop)
+
     window.addEventListener('resize', update, { passive: true })
 
     const observer = new ResizeObserver(update)
@@ -48,8 +63,7 @@ export function CustomScrollbar() {
     observer.observe(document.body)
 
     return () => {
-      document.documentElement.classList.remove('native-scrollbar-hidden')
-      window.removeEventListener('scroll', update)
+      cancelAnimationFrame(frame)
       window.removeEventListener('resize', update)
       observer.disconnect()
     }
