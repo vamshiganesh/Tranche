@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { createIssuerProfile } from '../api/issuers'
-import { ApiClientError } from '../api/client'
-import { useAuth } from '../context/AuthContext'
+import { createIssuerProfile } from '../../api/issuers'
+import { ApiClientError } from '../../api/client'
+import { useAuth } from '../../context/AuthContext'
 
 export function IssuerOnboardingPage() {
   const { refreshUser } = useAuth()

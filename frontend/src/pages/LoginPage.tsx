@@ -20,7 +20,7 @@ export function LoginPage() {
   const [email, setEmail] = useState(locationState.email ?? '')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(locationState.verified ? 'Email verified. You can sign in.' : null)
+  const [success] = useState(locationState.verified ? 'Email verified. You can sign in.' : null)
   const [submitting, setSubmitting] = useState(false)
 
   if (!loading && user) {
