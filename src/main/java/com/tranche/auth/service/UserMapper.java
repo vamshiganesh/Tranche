@@ -4,6 +4,7 @@ import com.tranche.auth.domain.User;
 import com.tranche.auth.dto.CurrentUserResponse;
 import com.tranche.auth.dto.UserResponse;
 import com.tranche.investor.domain.InvestorProfile;
+import com.tranche.issuer.domain.Issuer;
 
 public final class UserMapper {
 
@@ -20,13 +21,21 @@ public final class UserMapper {
         );
     }
 
-    public static CurrentUserResponse toCurrentUserResponse(User user, InvestorProfile profile) {
+    public static CurrentUserResponse toCurrentUserResponse(
+            User user,
+            InvestorProfile investorProfile,
+            Issuer issuer
+    ) {
         return new CurrentUserResponse(
                 user.getPublicId(),
                 user.getEmail(),
                 user.getRole(),
                 user.getFullName(),
-                profile != null ? profile.getWalletBalance() : null
+                user.isEmailVerified(),
+                investorProfile != null ? investorProfile.getWalletBalance() : null,
+                investorProfile != null ? investorProfile.getKycStatus() : null,
+                issuer != null,
+                issuer != null ? issuer.getVerificationStatus() : null
         );
     }
 }
