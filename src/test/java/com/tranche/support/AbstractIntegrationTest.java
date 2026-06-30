@@ -40,3 +40,84 @@ public abstract class AbstractIntegrationTest {
         registry.add("spring.data.redis.port", () -> IntegrationTestContainers.redis().getMappedPort(6379));
         registry.add("spring.cache.type", () -> "none");
     }
+
+    @Autowired
+    protected IssuerRepository issuerRepository;
+
+    @Autowired
+    protected UserRepository userRepository;
+
+    @Autowired
+    protected InvestorProfileRepository investorProfileRepository;
+
+    @Autowired
+    protected OpportunityRepository opportunityRepository;
+
+    @Autowired
+    protected InvestmentOrderRepository investmentOrderRepository;
+
+    @Autowired
+    protected AllocationRepository allocationRepository;
+
+    @Autowired
+    protected PortfolioPositionRepository portfolioPositionRepository;
+
+    @Autowired
+    protected AuditLogRepository auditLogRepository;
+
+    @Autowired
+    protected OutboxEventRepository outboxEventRepository;
+
+    @Autowired
+    protected ObjectMapper objectMapper;
+
+    protected void resetInvestorWallets() {
+        for (InvestorProfile profile : investorProfileRepository.findAll()) {
+            profile.setWalletBalance(new BigDecimal("3000000.0000"));
+            profile.setLockedBalance(BigDecimal.ZERO);
+            investorProfileRepository.save(profile);
+        }
+    }
+
+    protected void clearTransactionalData() {
+        portfolioPositionRepository.deleteAll();
+        allocationRepository.deleteAll();
+        investmentOrderRepository.deleteAll();
+        auditLogRepository.deleteAll();
+        outboxEventRepository.deleteAll();
+        opportunityRepository.findAll().stream()
+                .filter(opportunity -> !SeedUsers.DEMO_OPPORTUNITY_TITLE.equals(opportunity.getTitle()))
+                .forEach(opportunityRepository::delete);
+    }
+
+    protected User requireUser(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("User not found: " + email));
+    }
+
+    protected UserPrincipal principal(String email) {
+        return UserPrincipal.from(requireUser(email));
+    }
+
+    protected List<UserPrincipal> investorPrincipals() {
+        return userRepository.findAll().stream()
+                .filter(user -> user.getRole() == Role.INVESTOR)
+                .map(UserPrincipal::from)
+                .toList();
+    }
+
+    /** Creates a LIVE opportunity for allocation integration tests. */
+    protected Long prepareLiveOpportunity(String title, int totalUnits, int remainingUnits) {
+        resetInvestorWallets();
+        clearTransactionalData();
+        Issuer issuer = issuerRepository.findAll().getFirst();
+        Opportunity opportunity = OpportunityTestBuilder.anOpportunity()
+                .issuer(issuer)
+                .title(title)
+                .totalUnits(totalUnits)
+                .remainingUnits(remainingUnits)
+                .live()
+                .build();
+        return opportunityRepository.save(opportunity).getId();
+    }
+}
