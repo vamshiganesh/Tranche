@@ -2,8 +2,6 @@ import { apiRequest } from './client'
 import type {
   CommitmentResponse,
   CreateOpportunityRequest,
-  CurrentUser,
-  LoginResponse,
   OpportunityDetail,
   OpportunityStatus,
   OpportunityStatusUpdate,
@@ -11,17 +9,7 @@ import type {
   PageResponse,
 } from './types'
 
-export function login(email: string, password: string) {
-  return apiRequest<LoginResponse>('/auth/login', {
-    method: 'POST',
-    body: { email, password },
-    auth: false,
-  })
-}
-
-export function fetchMe() {
-  return apiRequest<CurrentUser>('/auth/me')
-}
+export { fetchMe, login } from './auth'
 
 export function listOpportunities(params?: {
   status?: OpportunityStatus
