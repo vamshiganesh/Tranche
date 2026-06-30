@@ -38,8 +38,8 @@
   --space-2xl: 3rem;
   --sidebar-width: 15.5rem;
   --header-height: 3.75rem;
-  --scrollbar-thumb: rgba(26, 77, 62, 0.32);
-  --scrollbar-thumb-hover: rgba(26, 77, 62, 0.52);
+  --scrollbar-thumb: rgba(122, 115, 106, 0.38);
+  --scrollbar-thumb-hover: rgba(74, 69, 64, 0.55);
   --scrollbar-track: transparent;
   color-scheme: light;
 }
@@ -58,6 +58,11 @@ html {
 *::-webkit-scrollbar {
   width: 8px;
   height: 8px;
+}
+*::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
 }
 *::-webkit-scrollbar-track {
   background: var(--scrollbar-track);
