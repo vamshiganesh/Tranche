@@ -73,11 +73,15 @@ public abstract class AbstractIntegrationTest {
     @Autowired
     protected ObjectMapper objectMapper;
 
-    @Transactional
+    @Autowired
+    private PlatformTransactionManager transactionManager;
+
     protected void resetInvestorWallets() {
-        investorProfileRepository.resetAllWalletsForTests(
-                new BigDecimal("3000000.0000"),
-                VerificationStatus.APPROVED
+        new TransactionTemplate(transactionManager).executeWithoutResult(status ->
+                investorProfileRepository.resetAllWalletsForTests(
+                        new BigDecimal("3000000.0000"),
+                        VerificationStatus.APPROVED
+                )
         );
     }
 
