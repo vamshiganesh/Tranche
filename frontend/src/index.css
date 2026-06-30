@@ -499,6 +499,88 @@ a:hover { text-decoration: underline; }
 .fill-full { color: var(--forest); font-weight: 600; }
 
 .page-narrow { max-width: 36rem; }
+
+.issuer-onboarding-page {
+  max-width: 42rem;
+}
+.issuer-onboarding-card {
+  overflow: hidden;
+}
+.issuer-onboarding-card .card-body {
+  padding: var(--space-lg);
+}
+.issuer-onboarding-notice {
+  padding: var(--space-md) var(--space-lg);
+  background: var(--paper-elevated);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.issuer-onboarding-notice h4 {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink-secondary);
+  margin-bottom: var(--space-xs);
+}
+.issuer-onboarding-notice p {
+  font-size: 0.875rem;
+  color: var(--ink-muted);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.password-requirements {
+  margin-top: var(--space-sm);
+  padding: var(--space-md);
+  background: var(--paper-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+.password-requirements-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-muted);
+  margin-bottom: var(--space-sm);
+}
+.password-requirements ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.password-requirements li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+}
+.password-requirements li.met {
+  color: var(--forest);
+}
+.password-requirements-icon {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  width: 1rem;
+  flex-shrink: 0;
+}
+.password-requirements-valid {
+  border-color: var(--forest-border);
+  background: var(--forest-soft);
+}
+.input-invalid {
+  border-color: var(--danger) !important;
+}
+.field-hint {
+  font-size: 0.8125rem;
+  margin-top: var(--space-xs);
+  margin-bottom: 0;
+}
+.field-hint-error { color: var(--danger); }
+.field-hint-success { color: var(--forest); }
+
 .onboarding-stack { display: flex; flex-direction: column; gap: var(--space-md); margin-bottom: var(--space-lg); }
 .queue-count {
   font-size: 0.75rem;
