@@ -179,6 +179,8 @@ All passwords: **`Password123!`**. Each investor wallet is seeded with **$3,000,
 
 A demo opportunity (**Acme Q1 Receivables — Invoice #INV-2026-0142**) is seeded in `DRAFT` for the full lifecycle walkthrough.
 
+**New user onboarding:** register at `/register`, verify email (OTP in dev logs), add demo funds, and get admin KYC/KYB approval. See **[docs/onboarding.md](docs/onboarding.md)**.
+
 Load API tokens in any terminal: `source scripts/demo-env.sh`
 
 ### Tests
