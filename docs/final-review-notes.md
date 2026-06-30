@@ -93,13 +93,15 @@ See **Top 5 production next steps** in the README summary and below. Full backlo
 
 ## Production Hardening TODOs (codebase)
 
+- [x] SpringDoc OpenAPI (`/swagger-ui.html`, dev profile)
+- [x] GitHub Actions CI with Testcontainers (`.github/workflows/ci.yml`)
+- [x] Maven wrapper (`./mvnw`) for reproducible builds
 - [ ] Dedicated outbox worker service + retry/DLQ policy
 - [ ] Apply `discount_rate` when computing `unit_price` on publish (or validate issuer input)
 - [ ] Investor profile read API (wallet exposed only via `/auth/me` today)
 - [ ] Flyway repeatable migration for reference data in staging
-- [ ] GitHub Actions CI with Testcontainers
+- [ ] Health indicators for Redis + custom allocation metrics (commits/sec, reject rate)
 - [ ] Integration test for rate-limit 429 at HTTP layer
-- [ ] Maven wrapper (`mvnw`) for reproducible builds
 
 ---
 
@@ -112,5 +114,6 @@ See **Top 5 production next steps** in the README summary and below. Full backlo
 | [audit-and-outbox.md](audit-and-outbox.md) | Audit queries, poller |
 | [non-functional-design.md](non-functional-design.md) | Errors, cache, rate limits |
 | [demo-flow.md](demo-flow.md) | Live demo curl walkthrough |
+| [demo-script.md](demo-script.md) | Timed interview UI walkthrough |
 | [schema-notes.md](schema-notes.md) | Tables, indexes, migrations |
 | [api-contract.md](api-contract.md) | REST sketch |
