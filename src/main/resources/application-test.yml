@@ -24,6 +24,8 @@ tranche:
   jwt:
     secret: test-jwt-secret-key-minimum-32-characters-long
     expiration-ms: 3600000
+  scheduling:
+    enabled: false
   investor:
     demo-credit-enabled: true
   onboarding:

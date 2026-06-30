@@ -21,11 +21,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.MariaDBContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -35,103 +31,12 @@ import java.util.List;
 @ActiveProfiles("test")
 public abstract class AbstractIntegrationTest {
 
-    @Container
-    static MariaDBContainer<?> mariaDB = new MariaDBContainer<>(DockerImageName.parse("mariadb:11.4"))
-            .withDatabaseName("tranche_test")
-            .withUsername("tranche")
-            .withPassword("tranche");
-
-    @Container
-    static GenericContainer<?> redis = new GenericContainer<>(DockerImageName.parse("redis:7-alpine"))
-            .withExposedPorts(6379);
-
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", mariaDB::getJdbcUrl);
-        registry.add("spring.datasource.username", mariaDB::getUsername);
-        registry.add("spring.datasource.password", mariaDB::getPassword);
-        registry.add("spring.data.redis.host", redis::getHost);
-        registry.add("spring.data.redis.port", () -> redis.getMappedPort(6379));
+        registry.add("spring.datasource.url", IntegrationTestContainers.mariaDb()::getJdbcUrl);
+        registry.add("spring.datasource.username", IntegrationTestContainers.mariaDb()::getUsername);
+        registry.add("spring.datasource.password", IntegrationTestContainers.mariaDb()::getPassword);
+        registry.add("spring.data.redis.host", IntegrationTestContainers.redis()::getHost);
+        registry.add("spring.data.redis.port", () -> IntegrationTestContainers.redis().getMappedPort(6379));
         registry.add("spring.cache.type", () -> "none");
     }
-
-    @Autowired
-    protected IssuerRepository issuerRepository;
-
-    @Autowired
-    protected UserRepository userRepository;
-
-    @Autowired
-    protected InvestorProfileRepository investorProfileRepository;
-
-    @Autowired
-    protected OpportunityRepository opportunityRepository;
-
-    @Autowired
-    protected InvestmentOrderRepository investmentOrderRepository;
-
-    @Autowired
-    protected AllocationRepository allocationRepository;
-
-    @Autowired
-    protected PortfolioPositionRepository portfolioPositionRepository;
-
-    @Autowired
-    protected AuditLogRepository auditLogRepository;
-
-    @Autowired
-    protected OutboxEventRepository outboxEventRepository;
-
-    @Autowired
-    protected ObjectMapper objectMapper;
-
-    protected void resetInvestorWallets() {
-        for (InvestorProfile profile : investorProfileRepository.findAll()) {
-            profile.setWalletBalance(new BigDecimal("3000000.0000"));
-            profile.setLockedBalance(BigDecimal.ZERO);
-            investorProfileRepository.save(profile);
-        }
-    }
-
-    protected void clearTransactionalData() {
-        portfolioPositionRepository.deleteAll();
-        allocationRepository.deleteAll();
-        investmentOrderRepository.deleteAll();
-        auditLogRepository.deleteAll();
-        outboxEventRepository.deleteAll();
-        opportunityRepository.findAll().stream()
-                .filter(opportunity -> !SeedUsers.DEMO_OPPORTUNITY_TITLE.equals(opportunity.getTitle()))
-                .forEach(opportunityRepository::delete);
-    }
-
-    protected User requireUser(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalStateException("User not found: " + email));
-    }
-
-    protected UserPrincipal principal(String email) {
-        return UserPrincipal.from(requireUser(email));
-    }
-
-    protected List<UserPrincipal> investorPrincipals() {
-        return userRepository.findAll().stream()
-                .filter(user -> user.getRole() == Role.INVESTOR)
-                .map(UserPrincipal::from)
-                .toList();
-    }
-
-    /** Creates a LIVE opportunity for allocation integration tests. */
-    protected Long prepareLiveOpportunity(String title, int totalUnits, int remainingUnits) {
-        resetInvestorWallets();
-        clearTransactionalData();
-        Issuer issuer = issuerRepository.findAll().getFirst();
-        Opportunity opportunity = OpportunityTestBuilder.anOpportunity()
-                .issuer(issuer)
-                .title(title)
-                .totalUnits(totalUnits)
-                .remainingUnits(remainingUnits)
-                .live()
-                .build();
-        return opportunityRepository.save(opportunity).getId();
-    }
-}

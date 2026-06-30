@@ -10,27 +10,29 @@ import org.testcontainers.utility.DockerImageName;
  */
 public final class IntegrationTestContainers {
 
-    private static final MariaDBContainer<?> MARIA_DB = new MariaDBContainer<>(DockerImageName.parse("mariadb:11.4"))
-            .withDatabaseName("tranche_test")
-            .withUsername("tranche")
-            .withPassword("tranche");
-
-    private static final GenericContainer<?> REDIS = new GenericContainer<>(DockerImageName.parse("redis:7-alpine"))
-            .withExposedPorts(6379);
-
-    static {
-        MARIA_DB.start();
-        REDIS.start();
-    }
+    private static MariaDBContainer<?> mariaDb;
+    private static GenericContainer<?> redis;
 
     private IntegrationTestContainers() {
     }
 
     public static MariaDBContainer<?> mariaDb() {
-        return MARIA_DB;
+        if (mariaDb == null) {
+            mariaDb = new MariaDBContainer<>(DockerImageName.parse("mariadb:11.4"))
+                    .withDatabaseName("tranche_test")
+                    .withUsername("tranche")
+                    .withPassword("tranche");
+            mariaDb.start();
+        }
+        return mariaDb;
     }
 
     public static GenericContainer<?> redis() {
-        return REDIS;
+        if (redis == null) {
+            redis = new GenericContainer<>(DockerImageName.parse("redis:7-alpine"))
+                    .withExposedPorts(6379);
+            redis.start();
+        }
+        return redis;
     }
 }
