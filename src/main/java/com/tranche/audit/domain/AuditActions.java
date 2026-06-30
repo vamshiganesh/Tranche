@@ -19,6 +19,12 @@ public final class AuditActions {
     public static final String PORTFOLIO_POSITION_MATURED = "PORTFOLIO_POSITION_MATURED";
     public static final String PORTFOLIO_POSITION_SETTLED = "PORTFOLIO_POSITION_SETTLED";
 
+    public static final String INVESTOR_KYC_APPROVED = "INVESTOR_KYC_APPROVED";
+    public static final String INVESTOR_KYC_REJECTED = "INVESTOR_KYC_REJECTED";
+    public static final String ISSUER_KYB_APPROVED = "ISSUER_KYB_APPROVED";
+    public static final String ISSUER_KYB_REJECTED = "ISSUER_KYB_REJECTED";
+    public static final String DEMO_WALLET_CREDITED = "DEMO_WALLET_CREDITED";
+
     private AuditActions() {
     }
 }

@@ -1,8 +1,10 @@
 package com.tranche.issuer.repository;
 
+import com.tranche.common.domain.VerificationStatus;
 import com.tranche.issuer.domain.Issuer;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -13,4 +15,6 @@ public interface IssuerRepository extends JpaRepository<Issuer, Long> {
     Optional<Issuer> findByUser_PublicId(UUID publicId);
 
     boolean existsByUser_Id(Long userId);
+
+    List<Issuer> findByVerificationStatus(VerificationStatus verificationStatus);
 }

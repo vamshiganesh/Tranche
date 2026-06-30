@@ -9,6 +9,7 @@ public final class AuditEntityTypes {
     public static final String INVESTMENT_ORDER = "InvestmentOrder";
     public static final String ALLOCATION = "Allocation";
     public static final String INVESTOR_PROFILE = "InvestorProfile";
+    public static final String ISSUER = "Issuer";
     public static final String PORTFOLIO_POSITION = "PortfolioPosition";
 
     private AuditEntityTypes() {

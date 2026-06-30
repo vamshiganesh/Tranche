@@ -15,6 +15,7 @@ import com.tranche.audit.domain.AuditEntityTypes;
 import com.tranche.audit.service.AuditService;
 import com.tranche.auth.domain.User;
 import com.tranche.auth.repository.UserRepository;
+import com.tranche.common.domain.VerificationStatus;
 import com.tranche.common.exception.BusinessException;
 import com.tranche.common.exception.ErrorCode;
 import com.tranche.common.exception.ResourceNotFoundException;
