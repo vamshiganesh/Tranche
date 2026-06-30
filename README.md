@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="gitAssets/Tranche-GitHub-Logo.png" alt="Tranche logo" width="420" />
+<img src="gitAssets/Tranche-GitHub-Logo.png" alt="Tranche logo" width="600" />
 
 <br /><br />
 
