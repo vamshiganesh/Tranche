@@ -220,6 +220,7 @@ Summary:
 | [docs/audit-and-outbox.md](docs/audit-and-outbox.md) | Audit query APIs and outbox poller |
 | [docs/non-functional-design.md](docs/non-functional-design.md) | Errors, validation, rate limits, caching, RBAC |
 | [docs/demo-flow.md](docs/demo-flow.md) | End-to-end demo with curl examples |
+| [docs/onboarding.md](docs/onboarding.md) | Register, email OTP, KYC/KYB, demo funds |
 | [docs/final-review-notes.md](docs/final-review-notes.md) | Strengths, tradeoffs, interview focus, production TODOs |
 
 ---

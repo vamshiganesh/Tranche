@@ -495,6 +495,14 @@ a:hover { text-decoration: underline; }
 .fill-partial { color: var(--warn); font-weight: 600; }
 .fill-full { color: var(--forest); font-weight: 600; }
 
+.page-narrow { max-width: 36rem; }
+.onboarding-banner { margin-bottom: var(--space-lg); }
+.onboarding-banner h3 { font-size: 1rem; margin-bottom: var(--space-sm); }
+.onboarding-banner p { font-size: 0.875rem; color: var(--ink-secondary); margin-bottom: var(--space-md); }
+.stack-lg { display: flex; flex-direction: column; gap: var(--space-lg); }
+.muted { color: var(--ink-muted); font-size: 0.8125rem; }
+.table-actions { display: flex; gap: 0.5rem; justify-content: flex-end; white-space: nowrap; }
+
 @media (max-width: 960px) {
   .detail-grid { grid-template-columns: 1fr; }
   .login-page { grid-template-columns: 1fr; }
