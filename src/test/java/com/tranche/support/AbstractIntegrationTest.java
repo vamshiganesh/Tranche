@@ -9,7 +9,6 @@ import com.tranche.auth.repository.UserRepository;
 import com.tranche.common.domain.Role;
 import com.tranche.common.domain.VerificationStatus;
 import com.tranche.common.security.UserPrincipal;
-import com.tranche.investor.domain.InvestorProfile;
 import com.tranche.investor.repository.InvestorProfileRepository;
 import com.tranche.issuer.domain.Issuer;
 import com.tranche.issuer.repository.IssuerRepository;
@@ -22,7 +21,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.math.BigDecimal;
@@ -73,12 +73,12 @@ public abstract class AbstractIntegrationTest {
     @Autowired
     protected ObjectMapper objectMapper;
 
+    @Transactional
     protected void resetInvestorWallets() {
-        for (InvestorProfile profile : investorProfileRepository.findAll()) {
-            profile.setWalletBalance(new BigDecimal("3000000.0000"));
-            profile.setLockedBalance(BigDecimal.ZERO);
-            investorProfileRepository.save(profile);
-        }
+        investorProfileRepository.resetAllWalletsForTests(
+                new BigDecimal("3000000.0000"),
+                VerificationStatus.APPROVED
+        );
     }
 
     protected void clearTransactionalData() {
@@ -104,8 +104,18 @@ public abstract class AbstractIntegrationTest {
     protected List<UserPrincipal> investorPrincipals() {
         return userRepository.findAll().stream()
                 .filter(user -> user.getRole() == Role.INVESTOR)
+                .filter(user -> investorProfileRepository.findByUser_Id(user.getId())
+                        .map(profile -> profile.getKycStatus() == VerificationStatus.APPROVED)
+                        .orElse(false))
                 .map(UserPrincipal::from)
                 .toList();
+    }
+
+    protected List<UserPrincipal> seededInvestorPrincipals() {
+        return List.of(
+                principal(SeedUsers.INVESTOR1_EMAIL),
+                principal(SeedUsers.INVESTOR2_EMAIL)
+        );
     }
 
     /** Creates a LIVE opportunity for allocation integration tests. */

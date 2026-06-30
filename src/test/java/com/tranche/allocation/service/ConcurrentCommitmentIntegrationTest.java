@@ -54,8 +54,8 @@ class ConcurrentCommitmentIntegrationTest extends AbstractIntegrationTest {
                 .build();
         opportunityId = opportunityRepository.save(opportunity).getId();
 
-        investors = investorPrincipals();
-        assertThat(investors).hasSizeGreaterThanOrEqualTo(2);
+        investors = seededInvestorPrincipals();
+        assertThat(investors).hasSize(2);
     }
 
     @Test
