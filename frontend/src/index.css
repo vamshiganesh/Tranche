@@ -38,55 +38,91 @@
   --space-2xl: 3rem;
   --sidebar-width: 15.5rem;
   --header-height: 3.75rem;
-  --scrollbar-thumb: rgba(122, 115, 106, 0.38);
-  --scrollbar-thumb-hover: rgba(74, 69, 64, 0.55);
+  --scrollbar-thumb: #b5aea4;
+  --scrollbar-thumb-hover: #8a837a;
   --scrollbar-track: transparent;
   color-scheme: light;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
+
+/* Thin scrollbar without arrow buttons (Chrome 121+, Firefox, Edge).
+   Avoid ::-webkit-scrollbar on Chromium/Windows — it forces classic scrollbars with arrows. */
 html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
+  scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
-* {
+body,
+.page-content,
+.main-area,
+.table-wrap,
+.sidebar,
+.landing {
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
-*::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-*::-webkit-scrollbar-button {
-  display: none;
-  width: 0;
-  height: 0;
-}
-*::-webkit-scrollbar-button:single-button,
-*::-webkit-scrollbar-button:vertical:start:decrement,
-*::-webkit-scrollbar-button:vertical:end:increment,
-*::-webkit-scrollbar-button:horizontal:start:decrement,
-*::-webkit-scrollbar-button:horizontal:end:increment {
-  display: none;
-  width: 0;
-  height: 0;
-}
-*::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
-}
-*::-webkit-scrollbar-thumb {
-  background-color: var(--scrollbar-thumb);
-  border-radius: 100px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
-}
-*::-webkit-scrollbar-thumb:hover {
-  background-color: var(--scrollbar-thumb-hover);
-}
-*::-webkit-scrollbar-corner {
-  background: transparent;
+
+/* Safari / WebKit — custom thumb only; zero-height buttons to suppress arrows */
+@supports (-webkit-touch-callout: none) {
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  .page-content::-webkit-scrollbar,
+  .main-area::-webkit-scrollbar,
+  .table-wrap::-webkit-scrollbar,
+  .sidebar::-webkit-scrollbar,
+  .landing::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  html::-webkit-scrollbar-button,
+  body::-webkit-scrollbar-button,
+  .page-content::-webkit-scrollbar-button,
+  .main-area::-webkit-scrollbar-button,
+  .table-wrap::-webkit-scrollbar-button,
+  .sidebar::-webkit-scrollbar-button,
+  .landing::-webkit-scrollbar-button {
+    display: block;
+    height: 0;
+    width: 0;
+    background: transparent;
+  }
+  html::-webkit-scrollbar-track,
+  body::-webkit-scrollbar-track,
+  .page-content::-webkit-scrollbar-track,
+  .main-area::-webkit-scrollbar-track,
+  .table-wrap::-webkit-scrollbar-track,
+  .sidebar::-webkit-scrollbar-track,
+  .landing::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
+  html::-webkit-scrollbar-thumb,
+  body::-webkit-scrollbar-thumb,
+  .page-content::-webkit-scrollbar-thumb,
+  .main-area::-webkit-scrollbar-thumb,
+  .table-wrap::-webkit-scrollbar-thumb,
+  .sidebar::-webkit-scrollbar-thumb,
+  .landing::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    border-radius: 100px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  html::-webkit-scrollbar-thumb:hover,
+  body::-webkit-scrollbar-thumb:hover,
+  .page-content::-webkit-scrollbar-thumb:hover,
+  .main-area::-webkit-scrollbar-thumb:hover,
+  .table-wrap::-webkit-scrollbar-thumb:hover,
+  .sidebar::-webkit-scrollbar-thumb:hover,
+  .landing::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover);
+  }
+  html::-webkit-scrollbar-corner,
+  body::-webkit-scrollbar-corner {
+    background: transparent;
+  }
 }
 body {
   margin: 0;
