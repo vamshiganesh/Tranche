@@ -17,6 +17,15 @@ logging:
     com.tranche: DEBUG
     org.springframework.web: DEBUG
 
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    display-request-duration: true
+
 tranche:
   jwt:
     secret: dev-only-jwt-secret-key-minimum-32-characters-long

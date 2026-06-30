@@ -82,6 +82,12 @@ tranche:
     opportunity-list-ttl: 60s
     opportunity-detail-ttl: 30s
 
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
 logging:
   level:
     root: INFO
