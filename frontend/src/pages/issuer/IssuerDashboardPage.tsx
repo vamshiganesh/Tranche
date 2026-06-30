@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { listOpportunities } from '../../api/opportunities'
 import type { OpportunitySummary } from '../../api/types'
+import { useAuth } from '../../context/AuthContext'
 import { StatusBadge } from '../../components/StatusBadge'
 import { formatCurrency, formatDate } from '../../lib/format'
 
@@ -11,6 +12,7 @@ function actionLabel(status: OpportunitySummary['status']): string {
 }
 
 export function IssuerDashboardPage() {
+  const { user } = useAuth()
   const navigate = useNavigate()
   const [items, setItems] = useState<OpportunitySummary[]>([])
   const [loading, setLoading] = useState(true)
@@ -31,6 +33,15 @@ export function IssuerDashboardPage() {
 
   return (
     <>
+      {user?.issuerVerificationStatus === 'PENDING' && (
+        <div className="card onboarding-banner" style={{ marginBottom: 'var(--space-lg)' }}>
+          <h3>Company verification pending</h3>
+          <p>
+            An administrator must approve your company profile before you can create invoice
+            opportunities.
+          </p>
+        </div>
+      )}
       <header className="page-header">
         <h2>My invoices</h2>
         <p>Create opportunities and submit them for platform review.</p>

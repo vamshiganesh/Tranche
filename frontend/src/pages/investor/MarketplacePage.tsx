@@ -34,6 +34,7 @@ export function MarketplacePage() {
 
   return (
     <>
+      <InvestorOnboardingBanner />
       <header className="page-header">
         <h2>Marketplace</h2>
         <p>Open opportunities accepting commitments right now.</p>

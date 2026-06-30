@@ -301,7 +301,7 @@ export function LandingPage() {
           </p>
         </div>
         <div className="landing-cta-actions">
-          <Link to="/login" className="landing-btn landing-btn-on-dark">
+          <Link to="/register" className="landing-btn landing-btn-on-dark">
             Get started
             <BtnArrow />
           </Link>
@@ -316,6 +316,7 @@ export function LandingPage() {
         <div style={{ display: 'flex', gap: '1.5rem' }}>
           <a href="#platform">Platform</a>
           <Link to="/login">Sign in</Link>
+          <Link to="/register">Create account</Link>
         </div>
       </footer>
     </div>
