@@ -46,83 +46,64 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
-/* Thin scrollbar without arrow buttons (Chrome 121+, Firefox, Edge).
-   Avoid ::-webkit-scrollbar on Chromium/Windows — it forces classic scrollbars with arrows. */
+/* Hide native scrollbars — CustomScrollbar renders the overlay thumb (no OS arrow buttons). */
+.native-scrollbar-hidden,
+.native-scrollbar-hidden body {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.native-scrollbar-hidden::-webkit-scrollbar,
+.native-scrollbar-hidden body::-webkit-scrollbar,
+.native-scrollbar-hidden *::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
+  background: transparent !important;
+}
+.native-scrollbar-hidden::-webkit-scrollbar-button,
+.native-scrollbar-hidden body::-webkit-scrollbar-button,
+.native-scrollbar-hidden *::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.viewport-scrollbar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 9999;
+  width: 12px;
+  height: 100vh;
+  height: 100dvh;
+  padding: 0 3px;
+  pointer-events: auto;
+  touch-action: none;
+}
+.viewport-scrollbar-thumb {
+  position: absolute;
+  top: 0;
+  right: 3px;
+  width: 6px;
+  border-radius: 100px;
+  background: var(--scrollbar-thumb);
+  cursor: grab;
+  transition: background 0.15s ease, width 0.15s ease, right 0.15s ease;
+  will-change: transform;
+}
+.viewport-scrollbar:hover .viewport-scrollbar-thumb,
+.viewport-scrollbar-thumb:active {
+  background: var(--scrollbar-thumb-hover);
+}
+.viewport-scrollbar-thumb:active {
+  cursor: grabbing;
+  width: 7px;
+  right: 2.5px;
+}
+
 html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
-  scrollbar-gutter: stable;
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-}
-body,
-.page-content,
-.main-area,
-.table-wrap,
-.sidebar,
-.landing {
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-}
-
-/* Safari / WebKit — custom thumb only; zero-height buttons to suppress arrows */
-@supports (-webkit-touch-callout: none) {
-  html::-webkit-scrollbar,
-  body::-webkit-scrollbar,
-  .page-content::-webkit-scrollbar,
-  .main-area::-webkit-scrollbar,
-  .table-wrap::-webkit-scrollbar,
-  .sidebar::-webkit-scrollbar,
-  .landing::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-  html::-webkit-scrollbar-button,
-  body::-webkit-scrollbar-button,
-  .page-content::-webkit-scrollbar-button,
-  .main-area::-webkit-scrollbar-button,
-  .table-wrap::-webkit-scrollbar-button,
-  .sidebar::-webkit-scrollbar-button,
-  .landing::-webkit-scrollbar-button {
-    display: block;
-    height: 0;
-    width: 0;
-    background: transparent;
-  }
-  html::-webkit-scrollbar-track,
-  body::-webkit-scrollbar-track,
-  .page-content::-webkit-scrollbar-track,
-  .main-area::-webkit-scrollbar-track,
-  .table-wrap::-webkit-scrollbar-track,
-  .sidebar::-webkit-scrollbar-track,
-  .landing::-webkit-scrollbar-track {
-    background: var(--scrollbar-track);
-  }
-  html::-webkit-scrollbar-thumb,
-  body::-webkit-scrollbar-thumb,
-  .page-content::-webkit-scrollbar-thumb,
-  .main-area::-webkit-scrollbar-thumb,
-  .table-wrap::-webkit-scrollbar-thumb,
-  .sidebar::-webkit-scrollbar-thumb,
-  .landing::-webkit-scrollbar-thumb {
-    background-color: var(--scrollbar-thumb);
-    border-radius: 100px;
-    border: 2px solid transparent;
-    background-clip: padding-box;
-  }
-  html::-webkit-scrollbar-thumb:hover,
-  body::-webkit-scrollbar-thumb:hover,
-  .page-content::-webkit-scrollbar-thumb:hover,
-  .main-area::-webkit-scrollbar-thumb:hover,
-  .table-wrap::-webkit-scrollbar-thumb:hover,
-  .sidebar::-webkit-scrollbar-thumb:hover,
-  .landing::-webkit-scrollbar-thumb:hover {
-    background-color: var(--scrollbar-thumb-hover);
-  }
-  html::-webkit-scrollbar-corner,
-  body::-webkit-scrollbar-corner {
-    background: transparent;
-  }
 }
 body {
   margin: 0;
