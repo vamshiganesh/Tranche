@@ -238,10 +238,8 @@ Summary:
 
 - **Real payment gateway integration** — replace mock fund locking with actual payment rails
 - **Outbox consumer** — dedicated worker to deliver notifications via email/SMS/push
-- **Investor KYC workflow** — identity verification before first commitment
 - **Secondary market** — transfer allocated positions between investors
 - **Risk scoring service** — automated risk grade assignment
-- **OpenAPI / SpringDoc** — interactive API documentation at `/swagger-ui.html` (dev profile)
 - **Observability** — distributed tracing, metrics dashboards, structured logging
 - **Event sourcing for allocation** — full event replay for regulatory audit
 ---
