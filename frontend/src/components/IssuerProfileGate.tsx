@@ -5,14 +5,20 @@ import { useAuth } from '../context/AuthContext'
 export function IssuerProfileGate() {
   const { user, loading } = useAuth()
   const location = useLocation()
+  const onOnboarding = location.pathname === '/issuer/onboarding'
 
   if (loading || !user) return null
 
-  if (user.role === 'ISSUER' && !user.hasIssuerProfile && location.pathname !== '/issuer/onboarding') {
+  if (user.role === 'ISSUER' && !user.hasIssuerProfile && !onOnboarding) {
     return <Navigate to="/issuer/onboarding" replace />
   }
 
-  if (user.role === 'ISSUER' && user.hasIssuerProfile && location.pathname === '/issuer/onboarding') {
+  if (
+    user.role === 'ISSUER'
+    && user.hasIssuerProfile
+    && onOnboarding
+    && user.issuerVerificationStatus !== 'REJECTED'
+  ) {
     return <Navigate to="/issuer" replace />
   }
 

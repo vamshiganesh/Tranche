@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { applyDemoCredit } from '../api/investors'
+import { applyDemoCredit, resubmitKyc } from '../api/investors'
 import { ApiClientError } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { formatCurrencyPrecise } from '../lib/format'
+import { VerificationCallout } from './VerificationCallout'
 
 export function InvestorOnboardingBanner() {
   const { user, refreshUser } = useAuth()
@@ -11,7 +12,8 @@ export function InvestorOnboardingBanner() {
 
   if (!user || user.role !== 'INVESTOR') return null
 
-  const needsKyc = user.kycStatus !== 'APPROVED'
+  const kycStatus = user.kycStatus ?? 'PENDING'
+  const needsKyc = kycStatus !== 'APPROVED'
   const needsFunds = (user.walletBalance ?? 0) <= 0
 
   if (!needsKyc && !needsFunds) return null
@@ -31,31 +33,66 @@ export function InvestorOnboardingBanner() {
     }
   }
 
+  async function handleResubmitKyc() {
+    setLoading(true)
+    setError(null)
+    try {
+      await resubmitKyc()
+      await refreshUser()
+    } catch (err) {
+      if (err instanceof ApiClientError) {
+        setError(err.message)
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
-    <div className="card onboarding-banner">
-      <h3>Complete your setup</h3>
+    <div className="onboarding-stack">
       {needsKyc && (
-        <p>
-          Identity verification is <strong>pending admin approval</strong>. You cannot commit
-          funds until KYC is approved.
-        </p>
-      )}
-      {needsFunds && (
-        <p>
-          Your wallet balance is {formatCurrencyPrecise(user.walletBalance ?? 0)}. Add demo
-          funds to try the allocation flow locally.
-        </p>
-      )}
-      {error && <div className="alert alert-error">{error}</div>}
-      {needsFunds && (
-        <button
-          type="button"
-          className="btn btn-primary btn-sm"
-          disabled={loading}
-          onClick={addDemoFunds}
+        <VerificationCallout
+          status={kycStatus}
+          title="Identity verification"
+          action={
+            kycStatus === 'REJECTED' ? (
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                disabled={loading}
+                onClick={handleResubmitKyc}
+              >
+                {loading ? 'Submitting…' : 'Resubmit for review'}
+              </button>
+            ) : undefined
+          }
         >
-          {loading ? 'Adding funds…' : 'Add demo funds ($3M)'}
-        </button>
+          {kycStatus === 'REJECTED'
+            ? 'Your identity verification was not approved. Resubmit to return to the admin review queue.'
+            : 'An administrator must approve your identity before you can commit funds.'}
+        </VerificationCallout>
+      )}
+      {needsFunds && (
+        <div className="verification-callout verification-callout-info">
+          <div className="verification-callout-head">
+            <h4>Wallet funding</h4>
+          </div>
+          <p>
+            Your available balance is {formatCurrencyPrecise(user.walletBalance ?? 0)}. Add demo
+            funds to try the allocation flow locally.
+          </p>
+          {error && <div className="alert alert-error">{error}</div>}
+          <div className="verification-callout-action">
+            <button
+              type="button"
+              className="btn btn-primary btn-sm"
+              disabled={loading}
+              onClick={addDemoFunds}
+            >
+              {loading ? 'Adding funds…' : 'Add demo funds ($3M)'}
+            </button>
+          </div>
+        </div>
       )}
     </div>
   )
