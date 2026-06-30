@@ -172,6 +172,79 @@ class OnboardingIntegrationTest extends AbstractHttpIntegrationTest {
     }
 
     @Test
+    void rejectedIssuerCanResubmitAndReappearInAdminQueue() {
+        String email = "rejected-issuer-" + UUID.randomUUID() + "@example.com";
+        String password = "Password123!";
+
+        ResponseEntity<Map> register = restTemplate.postForEntity(
+                baseUrl() + "/api/v1/auth/register",
+                Map.of(
+                        "email", email,
+                        "password", password,
+                        "role", "ISSUER",
+                        "fullName", "Rejected Issuer"
+                ),
+                Map.class
+        );
+        String code = (String) register.getBody().get("devVerificationCode");
+        restTemplate.postForEntity(
+                baseUrl() + "/api/v1/auth/verify-email",
+                Map.of("email", email, "code", code),
+                Void.class
+        );
+
+        String token = loginToken(email, password);
+        postJson(
+                "/api/v1/issuers/profile",
+                token,
+                Map.of("companyName", "Reject Me Ltd", "registrationNumber", "REG-REJ"),
+                Map.class
+        );
+
+        String adminToken = loginToken(SeedUsers.ADMIN_EMAIL, SeedUsers.PASSWORD);
+        ResponseEntity<List> pendingBefore = restTemplate.exchange(
+                baseUrl() + "/api/v1/admin/onboarding/issuers",
+                org.springframework.http.HttpMethod.GET,
+                new org.springframework.http.HttpEntity<>(bearerHeaders(adminToken)),
+                List.class
+        );
+        @SuppressWarnings("unchecked")
+        Map<String, Object> row = (Map<String, Object>) pendingBefore.getBody().stream()
+                .filter(item -> email.equals(((Map<?, ?>) item).get("email")))
+                .findFirst()
+                .orElseThrow();
+
+        postJson(
+                "/api/v1/admin/onboarding/issuers/" + row.get("userId") + "/reject",
+                adminToken,
+                Map.of(),
+                Map.class
+        );
+
+        ResponseEntity<Map> resubmit = restTemplate.exchange(
+                baseUrl() + "/api/v1/issuers/profile",
+                org.springframework.http.HttpMethod.PUT,
+                new org.springframework.http.HttpEntity<>(
+                        Map.of("companyName", "Fixed Corp", "registrationNumber", "REG-FIX"),
+                        bearerHeaders(token)
+                ),
+                Map.class
+        );
+        assertThat(resubmit.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(resubmit.getBody().get("verificationStatus")).isEqualTo("PENDING");
+
+        ResponseEntity<List> pendingAfter = restTemplate.exchange(
+                baseUrl() + "/api/v1/admin/onboarding/issuers",
+                org.springframework.http.HttpMethod.GET,
+                new org.springframework.http.HttpEntity<>(bearerHeaders(adminToken)),
+                List.class
+        );
+        boolean backInQueue = pendingAfter.getBody().stream()
+                .anyMatch(item -> email.equals(((Map<?, ?>) item).get("email")));
+        assertThat(backInQueue).isTrue();
+    }
+
+    @Test
     void loginBlockedUntilEmailVerified() {
         String email = "unverified-" + UUID.randomUUID() + "@example.com";
 

@@ -1,17 +1,23 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { createOpportunity } from '../../api/opportunities'
 import type { RiskGrade } from '../../api/types'
 import { ApiClientError } from '../../api/client'
+import { VerificationCallout } from '../../components/VerificationCallout'
+import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { computeUnitPrice, toApiDecimal } from '../../lib/format'
 
 const RISK_GRADES: RiskGrade[] = ['A', 'B', 'C', 'D']
 
 export function CreateOpportunityPage() {
+  const { user } = useAuth()
   const navigate = useNavigate()
   const { showToast } = useToast()
   const [submitting, setSubmitting] = useState(false)
+
+  const verificationStatus = user?.issuerVerificationStatus ?? 'PENDING'
+  const canCreate = verificationStatus === 'APPROVED'
 
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -52,6 +58,36 @@ export function CreateOpportunityPage() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  if (!canCreate) {
+    return (
+      <>
+        <header className="page-header">
+          <h2>New opportunity</h2>
+          <p>Company verification must be approved before you can create opportunities.</p>
+        </header>
+        <VerificationCallout
+          status={verificationStatus}
+          title="Company verification"
+          action={
+            verificationStatus === 'REJECTED' ? (
+              <Link to="/issuer/onboarding" className="btn btn-primary btn-sm">
+                Update profile
+              </Link>
+            ) : (
+              <Link to="/issuer" className="btn btn-secondary btn-sm">
+                Back to dashboard
+              </Link>
+            )
+          }
+        >
+          {verificationStatus === 'REJECTED'
+            ? 'Your company profile was rejected. Update and resubmit it for administrator review.'
+            : 'Your company profile is awaiting administrator approval.'}
+        </VerificationCallout>
+      </>
+    )
   }
 
   return (

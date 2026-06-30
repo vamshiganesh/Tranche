@@ -32,7 +32,8 @@ flowchart LR
 3. **Sign in** — `POST /api/v1/auth/login`.
 4. **Add demo funds** — `POST /api/v1/investors/wallet/demo-credit` (dev profile only). Credits **$3,000,000** by default.
 5. **KYC** — new investors start with `kycStatus: PENDING`. Admin approves at **Operations → Onboarding** or via API.
-6. **Invest** — commitments rejected with `KYC_NOT_APPROVED` until admin approval.
+6. **If rejected** — `POST /api/v1/investors/kyc/resubmit` returns to `PENDING` and re-enters admin queue.
+7. **Invest** — commitments rejected with `KYC_NOT_APPROVED` until admin approval.
 
 ## Issuer path
 
