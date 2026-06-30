@@ -2,6 +2,8 @@
 
 **An Invoice Discounting Order & Allocation System**
 
+[![CI](https://github.com/vamshiganesh/Tranche/actions/workflows/ci.yml/badge.svg)](https://github.com/vamshiganesh/Tranche/actions/workflows/ci.yml)
+
 Tranche is a fintech-style Java backend where businesses publish invoice investment opportunities, investors place commitments, and the system allocates units fairly under concurrency — with full fund locking, lifecycle control, auditability, and notification events via an outbox.
 
 > **Positioning:** I built an **allocation engine**, not a marketplace clone.
@@ -125,7 +127,7 @@ Every status transition and money-affecting action produces an immutable `audit_
 
 - Java 21
 - Docker (for Testcontainers tests and local MariaDB/Redis)
-- Maven 3.9+ (or use the Maven wrapper if added)
+- Maven 3.9+ **or** use the included wrapper (`./mvnw`)
 
 ### Quick Start
 
@@ -134,11 +136,13 @@ Every status transition and money-affecting action produces an immutable `audit_
 docker compose up -d
 
 # 2. Run the API (Flyway migrations + seed data apply on startup)
-mvn spring-boot:run
+./mvnw spring-boot:run
 
 # 3. Health check
 curl -s http://localhost:8080/actuator/health | jq
 ```
+
+**API docs (dev profile):** [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html) — browse and try endpoints; use **Authorize** with a JWT from `POST /api/v1/auth/login`.
 
 ### Web UI (optional)
 
@@ -188,14 +192,18 @@ Load API tokens in any terminal: `source scripts/demo-env.sh`
 Integration tests spin up **MariaDB + Redis via Testcontainers** — no manual `tranche_test` setup required:
 
 ```bash
-mvn test
+./mvnw test
 ```
+
+CI runs the same suite on every push to `main` (see `.github/workflows/ci.yml`).
 
 Tests are skipped automatically when Docker is unavailable (`disabledWithoutDocker`).
 
 ---
 
 ## Demo Flow
+
+See **[docs/demo-script.md](docs/demo-script.md)** for a timed interview walkthrough (UI-first).
 
 See **[docs/demo-flow.md](docs/demo-flow.md)** for curl commands and a two-investor race walkthrough.
 
@@ -219,6 +227,7 @@ Summary:
 | [docs/allocation-engine.md](docs/allocation-engine.md) | Commitment API, locking, idempotency, partial fills |
 | [docs/audit-and-outbox.md](docs/audit-and-outbox.md) | Audit query APIs and outbox poller |
 | [docs/non-functional-design.md](docs/non-functional-design.md) | Errors, validation, rate limits, caching, RBAC |
+| [docs/demo-script.md](docs/demo-script.md) | Timed interview demo (UI walkthrough) |
 | [docs/demo-flow.md](docs/demo-flow.md) | End-to-end demo with curl examples |
 | [docs/onboarding.md](docs/onboarding.md) | Register, email OTP, KYC/KYB, demo funds |
 | [docs/final-review-notes.md](docs/final-review-notes.md) | Strengths, tradeoffs, interview focus, production TODOs |
@@ -232,7 +241,7 @@ Summary:
 - **Investor KYC workflow** — identity verification before first commitment
 - **Secondary market** — transfer allocated positions between investors
 - **Risk scoring service** — automated risk grade assignment
-- **OpenAPI / SpringDoc** — interactive API documentation
+- **OpenAPI / SpringDoc** — interactive API documentation at `/swagger-ui.html` (dev profile)
 - **Observability** — distributed tracing, metrics dashboards, structured logging
 - **Event sourcing for allocation** — full event replay for regulatory audit
 ---

@@ -93,13 +93,11 @@ See **Top 5 production next steps** in the README summary and below. Full backlo
 
 ## Production Hardening TODOs (codebase)
 
-- [ ] SpringDoc OpenAPI generation from controllers
 - [ ] Dedicated outbox worker service + retry/DLQ policy
 - [ ] Apply `discount_rate` when computing `unit_price` on publish (or validate issuer input)
 - [ ] Investor profile read API (wallet exposed only via `/auth/me` today)
 - [ ] Flyway repeatable migration for reference data in staging
 - [ ] GitHub Actions CI with Testcontainers
-- [ ] Health indicators for Redis + custom allocation metrics (commits/sec, reject rate)
 - [ ] Integration test for rate-limit 429 at HTTP layer
 - [ ] Maven wrapper (`mvnw`) for reproducible builds
 
