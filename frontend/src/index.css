@@ -435,7 +435,9 @@ a:hover { text-decoration: underline; }
   grid-template-columns: repeat(2, 1fr);
   gap: var(--space-md) var(--space-lg);
 }
+.form-grid-single { grid-template-columns: 1fr; }
 .field-span-2 { grid-column: span 2; }
+.form-grid-single .field-span-2 { grid-column: span 1; }
 .form-card .card-footer {
   display: flex;
   justify-content: flex-end;

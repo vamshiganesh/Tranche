@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { createIssuerProfile, getIssuerProfile, resubmitIssuerProfile } from '../../api/issuers'
 import { ApiClientError } from '../../api/client'
+import { VerificationStatusBadge } from '../../components/VerificationCallout'
 import { useAuth } from '../../context/AuthContext'
-import { VerificationCallout } from '../../components/VerificationCallout'
 
 export function IssuerOnboardingPage() {
   const { user, refreshUser } = useAuth()
@@ -60,52 +60,66 @@ export function IssuerOnboardingPage() {
   }
 
   return (
-    <>
-      <header className="page-header">
-        <h2>{isResubmit ? 'Update company profile' : 'Company profile'}</h2>
-        <p>
-          {isResubmit
-            ? 'Correct the details below and resubmit for administrator review.'
-            : 'Tell us about your business before listing invoice opportunities.'}
-        </p>
+    <div className="issuer-onboarding-page">
+      <header className="page-header page-header-row">
+        <div>
+          <h2>{isResubmit ? 'Update company profile' : 'Company profile'}</h2>
+          <p>
+            {isResubmit
+              ? 'Correct your details and resubmit for administrator review.'
+              : 'Tell us about your business before listing invoice opportunities.'}
+          </p>
+        </div>
+        {isResubmit && <VerificationStatusBadge status="REJECTED" />}
       </header>
 
-      {isResubmit && (
-        <VerificationCallout status="REJECTED" title="Verification not approved">
-          Your company profile was rejected. Update your details and resubmit — you will reappear
-          in the admin onboarding queue.
-        </VerificationCallout>
-      )}
+      <form className="card form-card issuer-onboarding-card" onSubmit={handleSubmit}>
+        {isResubmit && (
+          <div className="issuer-onboarding-notice">
+            <h4>Previous submission not approved</h4>
+            <p>
+              Update your company information below. After resubmitting, your profile returns to
+              the admin onboarding queue for review.
+            </p>
+          </div>
+        )}
 
-      <div className="card form-card">
-        {error && <div className="alert alert-error">{error}</div>}
-        <form onSubmit={handleSubmit} className="form-grid">
-          <div className="field" style={{ gridColumn: '1 / -1' }}>
-            <label htmlFor="companyName">Company name</label>
-            <input
-              id="companyName"
-              className="input"
-              value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-              required
-            />
+        <div className="card-body">
+          {error && <div className="alert alert-error">{error}</div>}
+          <div className="form-grid form-grid-single">
+            <div className="field field-span-2">
+              <label htmlFor="companyName">Company name</label>
+              <input
+                id="companyName"
+                className="input"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                placeholder="Acme Corp"
+                required
+              />
+            </div>
+            <div className="field field-span-2">
+              <label htmlFor="registrationNumber">Registration number</label>
+              <input
+                id="registrationNumber"
+                className="input"
+                value={registrationNumber}
+                onChange={(e) => setRegistrationNumber(e.target.value)}
+                placeholder="Optional — company registry ID"
+              />
+            </div>
           </div>
-          <div className="field" style={{ gridColumn: '1 / -1' }}>
-            <label htmlFor="registrationNumber">Registration number (optional)</label>
-            <input
-              id="registrationNumber"
-              className="input"
-              value={registrationNumber}
-              onChange={(e) => setRegistrationNumber(e.target.value)}
-            />
-          </div>
-          <div style={{ gridColumn: '1 / -1' }}>
-            <button type="submit" className="btn btn-primary" disabled={submitting}>
-              {submitting ? 'Saving…' : isResubmit ? 'Resubmit for review' : 'Submit for review'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </>
+        </div>
+
+        <div className="card-footer">
+          <Link to="/issuer" className="btn btn-secondary btn-sm">
+            Cancel
+          </Link>
+          <button type="submit" className="btn btn-primary" disabled={submitting}>
+            {submitting ? 'Saving…' : isResubmit ? 'Resubmit for review' : 'Submit for review'}
+          </button>
+        </div>
+      </form>
+    </div>
   )
 }
