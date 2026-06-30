@@ -1,152 +1,405 @@
+<div align="center">
+
+<img src="gitAssets/Tranche-GitHub-Logo.png" alt="Tranche logo" width="420" />
+
+<br /><br />
+
 # Tranche
 
-**An Invoice Discounting Order & Allocation System**
+**Invoice discounting with an allocation engine built for concurrency, not CRUD.**
 
 [![CI](https://github.com/vamshiganesh/Tranche/actions/workflows/ci.yml/badge.svg)](https://github.com/vamshiganesh/Tranche/actions/workflows/ci.yml)
+![Java 21](https://img.shields.io/badge/Java-21-007396?style=flat-square)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4-6DB33F?style=flat-square&logo=springboot&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)
+![MariaDB](https://img.shields.io/badge/MariaDB-11-003545?style=flat-square&logo=mariadb&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-7-DC382D?style=flat-square&logo=redis&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)
 
-Tranche is a fintech-style Java backend where businesses publish invoice investment opportunities, investors place commitments, and the system allocates units fairly under concurrency — with full fund locking, lifecycle control, auditability, and notification events via an outbox.
+<br />
 
-> **Positioning:** I built an **allocation engine**, not a marketplace clone.
+**[Live frontend](https://tranche-six.vercel.app/)** &nbsp;·&nbsp; **[Swagger UI](http://localhost:8080/swagger-ui.html)** (local) &nbsp;·&nbsp; **[Demo script](docs/demo-script.md)** &nbsp;·&nbsp; **[Architecture](docs/architecture.md)**
 
-The hard problem is not listing invoices or storing orders. It is ensuring that when many investors commit to the same opportunity at the same time, the system never over-allocates, never double-reserves funds, and always leaves a complete audit trail.
+<br />
 
----
+*When ten investors hit the same invoice opportunity at the same millisecond,<br />most backends race. Tranche does not.*
 
-## Business Problem
+</div>
 
-Invoice discounting connects businesses that need early liquidity with investors willing to buy discounted receivables. In a live system:
+<br />
 
-- Demand often exceeds available units on popular opportunities.
-- Multiple investors may submit commitments within milliseconds of each other.
-- Partial fills are common when an opportunity is nearly full.
-- Every money-affecting action must be traceable for compliance and dispute resolution.
+## Table of Contents
 
-A naive CRUD backend will race, overbook, or lose consistency. Tranche treats **allocation correctness** as the central system concern.
+1. [Preview](#preview)
+2. [The story behind Tranche](#the-story-behind-tranche)
+3. [What Tranche does](#what-tranche-does)
+4. [By the numbers](#by-the-numbers)
+5. [Product tour](#product-tour)
+6. [How the hard part works](#how-the-hard-part-works)
+7. [Opportunity lifecycle](#opportunity-lifecycle)
+8. [Architecture](#architecture)
+9. [Onboarding and trust gates](#onboarding-and-trust-gates)
+10. [Technology stack](#technology-stack)
+11. [Testing and quality](#testing-and-quality)
+12. [Getting started](#getting-started)
+13. [Demo accounts](#demo-accounts)
+14. [Documentation map](#documentation-map)
+15. [License](#license)
 
----
+<br />
 
-## Core Capabilities
+## Preview
 
-| Capability | Description |
-|---|---|
-| Opportunity publishing | Issuers create invoice opportunities with face value, discount rate, tenure, minimum lot, and risk grade |
-| Admin review | Controlled lifecycle from draft through settlement |
-| Investor commitment | Idempotent commitment API with partial-fill and over-subscription handling |
-| Allocation engine | Atomic unit reservation under concurrent load |
-| Fund locking | Investor funds reserved at allocation time |
-| Portfolio | Invested amount, expected return, maturity date, realized yield |
-| Audit trail | Every status transition and money-affecting action logged |
-| Notification outbox | Async event emission for investment, maturity, and settlement |
+<div align="center">
 
----
+<img src="gitAssets/Thumbnail.png" alt="Tranche platform preview" width="900" />
 
-## Modules
+<br /><br />
 
-Tranche is a **modular monolith** — microservice-style boundaries without separate deployable services.
+**Vercel (frontend):** [https://tranche-six.vercel.app/](https://tranche-six.vercel.app/)
 
-| Module | Responsibility |
-|---|---|
-| `auth` | JWT authentication, role-based access control, user identity |
-| `issuer` | Business/issuer profiles and issuer-scoped actions |
-| `investor` | Investor profiles, wallet balance, fund reservation |
-| `opportunity` | Invoice opportunity CRUD, lifecycle state machine, listing |
-| `allocation` | Commitment intake, idempotency, unit allocation, partial fills |
-| `portfolio` | Position tracking, yield calculation, maturity views |
-| `audit` | Immutable audit log for transitions and financial actions |
-| `notification` | Transactional outbox for downstream notification delivery |
+<br />
 
-See [docs/architecture.md](docs/architecture.md) for layering, request flows, and technical design.
+*The live deployment showcases the UI and landing experience. Connect the Spring Boot API locally for the full lifecycle demo.*
 
----
+</div>
 
-## Opportunity Lifecycle
+<br />
 
-Opportunities move through a strict state machine. Invalid transitions are rejected.
+## The story behind Tranche
 
+Picture a marketplace where a popular invoice pool has **15 units left** and **two investors** submit commitments in the same breath. A naive system reads the same remaining count twice, allocates both, and quietly overbooks. Money moves. Compliance asks questions. Trust erodes.
+
+Tranche exists to solve that moment.
+
+I did not set out to build another invoice listing page. I set out to build an **allocation engine**: a backend where concurrent commitments are serialized correctly, wallets lock in the same transaction as unit reservation, partial fills are honest, retries are idempotent, and every transition leaves an immutable audit trail.
+
+The React frontend is the window into that engine. Three role workspaces (issuer, investor, admin) sit on top of one domain model. The story you see in the UI is backed by pessimistic locking, a strict opportunity state machine, and integration tests that race twenty threads against the same opportunity.
+
+<br />
+
+## What Tranche does
+
+Tranche is an **invoice discounting platform**. Businesses (issuers) publish receivable opportunities. Investors commit funds in discrete units. Operators (admins) review, publish, and drive opportunities from draft to settlement.
+
+| Actor | What they experience |
+|:------|:--------------------|
+| **Issuer** | Create invoice opportunities, submit for review, track subscription progress |
+| **Investor** | Browse live deals, commit units from a wallet, monitor portfolio through maturity |
+| **Admin** | Review queue, onboarding approvals (KYC/KYB), lifecycle transitions, audit inspection |
+
+Under the hood, the product is a **modular monolith**: eight bounded modules in one deployable JAR, sharing MariaDB and Redis, with microservice style boundaries and monolith simplicity.
+
+<br />
+
+## By the numbers
+
+| Metric | Value |
+|:-------|:------|
+| Automated tests | **79** (CI on every push to `main`) |
+| Integration test classes | **28** |
+| REST controllers | **9** |
+| Domain modules | **8** (auth, issuer, investor, opportunity, allocation, portfolio, audit, notification) |
+| Flyway migrations | **6** |
+| Opportunity lifecycle states | **7** (draft through settled) |
+| Concurrent allocation stress test | **20 threads** on one opportunity |
+| Seeded investor wallet (demo) | **$3,000,000** per account |
+| API idempotency | Header based replay safe commitments |
+| Frontend stack | React 19 · Vite · TypeScript |
+
+<br />
+
+## Product tour
+
+### ◈ Landing and positioning
+
+The public surface explains *why* allocation correctness matters before anyone signs in. Editorial typography, lifecycle storytelling, and role based workspaces set context for technical reviewers and recruiters alike.
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <b>Hero</b><br /><br />
+      <img src="gitAssets/LandingPage/Hero.png" alt="Tranche landing hero" width="100%" />
+    </td>
+    <td align="center" width="50%">
+      <b>Built for the hard part</b><br /><br />
+      <img src="gitAssets/LandingPage/Built_for_the_hard_part.png" alt="Built for the hard part section" width="100%" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center" colspan="2">
+      <b>Three workspaces, one platform</b><br /><br />
+      <img src="gitAssets/LandingPage/Three_workspaces_one_platform.png" alt="Three workspaces section" width="100%" />
+    </td>
+  </tr>
+</table>
+
+<br />
+
+### ◈ Authentication
+
+JWT based sign in with role aware routing. Registration includes email verification, password policy enforcement, and separate onboarding paths for investors and issuers.
+
+<div align="center">
+
+<table>
+  <tr>
+    <td align="center" width="70%">
+      <b>Sign in</b><br /><br />
+      <img src="gitAssets/Sign_in.png" alt="Sign in page" width="100%" />
+    </td>
+  </tr>
+</table>
+
+</div>
+
+<br />
+
+### ◈ Role workspaces
+
+Each role sees only what they need. Same engine, different lens.
+
+<table>
+  <tr>
+    <td align="center" width="33%">
+      <b>Admin · Operations</b><br /><br />
+      <img src="gitAssets/Admin.png" alt="Admin workspace" width="100%" />
+      <br /><br />
+      Review queue, onboarding approvals, lifecycle control, audit timeline
+    </td>
+    <td align="center" width="33%">
+      <b>Investor · Marketplace</b><br /><br />
+      <img src="gitAssets/Investor.png" alt="Investor workspace" width="100%" />
+      <br /><br />
+      Live opportunities, unit commitments, portfolio positions
+    </td>
+    <td align="center" width="33%">
+      <b>Issuer · Receivables</b><br /><br />
+      <img src="gitAssets/Issuer.png" alt="Issuer workspace" width="100%" />
+      <br /><br />
+      Draft opportunities, KYB onboarding, submission tracking
+    </td>
+  </tr>
+</table>
+
+<br />
+
+## How the hard part works
+
+Most marketplaces optimize for listing and search. Tranche optimizes for **the commit path**: the narrow window where money and inventory must move atomically.
+
+**Concurrency.** The opportunity row is locked first (`SELECT … FOR UPDATE`). Only then is the investor wallet locked. Fixed lock ordering prevents deadlocks. Unit decrement, fund reservation, audit write, and outbox event share one transaction.
+
+**Idempotency.** Every commitment carries an `Idempotency-Key`. Retries return the original order (HTTP 200) instead of double allocating (HTTP 201 on first success).
+
+**Partial fills.** When demand exceeds remaining units, the engine allocates what is left and reports `PARTIAL` honestly. No silent overbooking.
+
+**Auditability.** Status changes and money movements append to an immutable log: actor, correlation ID, before/after state.
+
+```mermaid
+sequenceDiagram
+    participant I as Investor
+    participant API as Allocation API
+    participant O as Opportunity row
+    participant W as Investor wallet
+    participant A as Audit log
+    participant X as Outbox
+
+    I->>API: POST /commitments + Idempotency-Key
+    API->>O: Pessimistic lock
+    API->>API: Validate LIVE, compute fill
+    API->>W: Lock funds
+    API->>O: Decrement remaining units
+    API->>A: Append audit entries
+    API->>X: Write INVESTMENT_SUCCESSFUL
+    API-->>I: 201 Created (or 200 replay)
 ```
-DRAFT → UNDER_REVIEW → APPROVED → LIVE → FULLY_SUBSCRIBED → MATURED → SETTLED
+
+<br />
+
+## Opportunity lifecycle
+
+Invalid transitions are rejected at the domain layer before they reach persistence. Only **LIVE** opportunities accept commitments.
+
+```mermaid
+stateDiagram-v2
+    [*] --> DRAFT
+    DRAFT --> UNDER_REVIEW : issuer submits
+    UNDER_REVIEW --> APPROVED : admin approves
+    UNDER_REVIEW --> DRAFT : admin rejects
+    APPROVED --> LIVE : admin publishes
+    LIVE --> FULLY_SUBSCRIBED : all units allocated
+    LIVE --> MATURED : admin matures
+    FULLY_SUBSCRIBED --> MATURED : admin matures
+    MATURED --> SETTLED : admin settles
+    SETTLED --> [*]
 ```
 
 | State | Meaning |
-|---|---|
-| `DRAFT` | Issuer is editing; not visible to investors |
-| `UNDER_REVIEW` | Submitted for admin review |
-| `APPROVED` | Admin approved; ready to publish |
-| `LIVE` | Open for investor commitments |
-| `FULLY_SUBSCRIBED` | All units allocated; no further commitments |
-| `MATURED` | Tenure elapsed; awaiting settlement |
-| `SETTLED` | Funds distributed; terminal state |
+|:------|:--------|
+| `DRAFT` | Issuer editing; hidden from investors |
+| `UNDER_REVIEW` | Awaiting admin decision |
+| `APPROVED` | Cleared for publish |
+| `LIVE` | Open for commitments |
+| `FULLY_SUBSCRIBED` | No units remaining |
+| `MATURED` | Tenure elapsed |
+| `SETTLED` | Terminal; funds distributed |
 
-Only `LIVE` opportunities accept commitments. Transitions are audited and enforced in the domain layer.
+<br />
 
----
+## Architecture
 
-## Concurrency, Idempotency & Auditability
+Tranche is a **modular monolith**: one process, clear module boundaries, shared schema, extraction ready design.
 
-### Concurrency
+```mermaid
+flowchart TB
+    subgraph clients [Clients]
+        UI[React SPA]
+        SW[Swagger UI]
+    end
 
-The allocation path is the critical section. Tranche uses a combination of:
+    subgraph api [Spring Boot API]
+        AUTH[auth]
+        ISS[issuer]
+        INV[investor]
+        OPP[opportunity]
+        ALLOC[allocation]
+        PORT[portfolio]
+        AUD[audit]
+        OUT[notification]
+    end
 
-- **Pessimistic locking** on opportunity rows during allocation
-- **Optimistic versioning** on entities subject to concurrent updates
-- **Transactional boundaries** so allocation, fund lock, and audit write succeed or fail together
+    subgraph data [Data and infra]
+        DB[(MariaDB)]
+        RD[(Redis cache)]
+    end
 
-Under concurrent commitments, the system guarantees no overbooking and correct partial fills.
+    UI --> api
+    SW --> api
+    AUTH --> DB
+    ISS --> DB
+    INV --> DB
+    OPP --> DB
+    ALLOC --> DB
+    PORT --> DB
+    AUD --> DB
+    OUT --> DB
+    OPP --> RD
+```
 
-### Idempotency
+| Module | Responsibility |
+|:-------|:---------------|
+| `auth` | JWT, registration, email verification, RBAC |
+| `issuer` | Company profile, KYB status, issuer scoped actions |
+| `investor` | Wallet balance, fund locking, KYC gates |
+| `opportunity` | CRUD, lifecycle state machine, marketplace listing |
+| `allocation` | Commitment intake, idempotency, unit allocation engine |
+| `portfolio` | Positions, expected return, maturity views |
+| `audit` | Append only audit timeline |
+| `notification` | Transactional outbox (mock dispatch in demo) |
 
-Investor commitment requests carry an `Idempotency-Key` header. Retries with the same key return the original result without re-allocating or re-locking funds.
+**Cross module rule:** repositories stay private; modules call each other's **service** layer only.
 
-### Auditability
+Deep dive: [docs/architecture.md](docs/architecture.md) · [docs/allocation-engine.md](docs/allocation-engine.md)
 
-Every status transition and money-affecting action produces an immutable `audit_logs` record with actor, timestamp, entity reference, before/after state, and correlation ID. The audit trail is append-only.
+<br />
 
----
+## Onboarding and trust gates
 
-## Tech Stack
+Demo complete onboarding without third party vendors. Gates are real; delivery is stubbed for local development.
 
-| Layer | Technology |
-|---|---|
-| Runtime | Java 21 |
-| Framework | Spring Boot 3.x |
-| Web | Spring Web |
-| Persistence | Spring Data JPA |
-| Database | MariaDB |
-| Cache | Redis |
-| Migrations | Flyway |
-| Security | Spring Security + JWT |
-| Testing | JUnit 5, Testcontainers |
-| Local infra | Docker Compose |
-| Frontend | React 19, Vite, TypeScript (see `frontend`) |
+```mermaid
+flowchart LR
+    subgraph investor [Investor path]
+        R1[Register] --> R2[Verify email OTP]
+        R2 --> R3[Add demo funds]
+        R3 --> R4[Admin KYC approve]
+        R4 --> R5[Commit to opportunity]
+    end
 
----
+    subgraph issuer [Issuer path]
+        I1[Register] --> I2[Verify email]
+        I2 --> I3[Company profile]
+        I3 --> I4[Admin KYB approve]
+        I4 --> I5[Create opportunity]
+    end
+```
 
-## Local Development 
+Full reference: [docs/onboarding.md](docs/onboarding.md)
+
+<br />
+
+## Technology stack
+
+| Layer | Choices |
+|:------|:--------|
+| **Runtime** | Java 21 |
+| **Backend** | Spring Boot 3.4 · Spring Security · Spring Data JPA |
+| **Database** | MariaDB 11 · Flyway migrations |
+| **Cache** | Redis 7 · cache aside opportunity listings |
+| **Auth** | JWT bearer tokens · BCrypt |
+| **API docs** | SpringDoc OpenAPI · Swagger UI (dev profile) |
+| **Frontend** | React 19 · Vite · TypeScript · Framer Motion · Lenis |
+| **Testing** | JUnit 5 · Testcontainers · Spring MockMvc |
+| **CI** | GitHub Actions · `./mvnw test` |
+| **Local infra** | Docker Compose |
+
+<br />
+
+## Testing and quality
+
+Correctness is not asserted in prose alone. The test suite proves it.
+
+| Test suite | What it proves |
+|:-----------|:---------------|
+| `ConcurrentCommitmentIntegrationTest` | 20 parallel threads never over allocate |
+| `InvestorRaceHttpIntegrationTest` | HTTP level two investor race |
+| `PartialFillIntegrationTest` | Honest partial fills when demand exceeds supply |
+| `IdempotencyIntegrationTest` | Replay returns same order without double spend |
+| `OpportunityLifecycleIntegrationTest` | Draft to settled with invalid transition guards |
+| `OnboardingIntegrationTest` | Email verify, KYC/KYB, resubmit flows |
+| `AllocationCalculatorTest` | Pure allocation math isolated from I/O |
+
+```bash
+./mvnw test
+```
+
+Requires Docker for Testcontainers (MariaDB + Redis). Tests skip gracefully when Docker is unavailable locally; CI runs the full **79** tests on every push.
+
+<br />
+
+## Getting started
 
 ### Prerequisites
 
-- Java 21
-- Docker (for Testcontainers tests and local MariaDB/Redis)
-- Maven 3.9+ **or** use the included wrapper (`./mvnw`)
+| Tool | Purpose |
+|:-----|:--------|
+| Java 21 | Run the API |
+| Docker | MariaDB, Redis, Testcontainers |
+| Node.js 20+ | Frontend dev server |
+| `./mvnw` | Included Maven wrapper (no global Maven required) |
 
-### Quick Start
+### 1 · Start infrastructure
 
 ```bash
-# 1. Start MariaDB + Redis
 docker compose up -d
-
-# 2. Run the API (Flyway migrations + seed data apply on startup)
-./mvnw spring-boot:run
-
-# 3. Health check
-curl -s http://localhost:8080/actuator/health | jq
 ```
 
-**API docs (dev profile):** [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html) — browse and try endpoints; use **Authorize** with a JWT from `POST /api/v1/auth/login`.
+### 2 · Run the API
 
-### Web UI (optional)
+```bash
+./mvnw spring-boot:run
+```
 
-A React frontend lives in `frontend`. With the API running on port 8080:
+Flyway applies migrations and seed data on startup. Health check:
+
+```bash
+curl -s http://localhost:8080/actuator/health
+```
+
+Swagger UI (dev profile): [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+
+### 3 · Run the frontend
 
 ```bash
 cd frontend
@@ -154,96 +407,73 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173). Vite proxies `/api` to the backend. See [frontend/README.md](frontend/README.md) for role-based workflows.
+Open [http://localhost:5173](http://localhost:5173). Vite proxies `/api` to port 8080.
 
-### Docker Compose Services
-
-| Service | Port | Purpose |
-|---|---|---|
-| MariaDB | 3306 | Primary datastore (`tranche` DB; `tranche_test` created via init script) |
-| Redis | 6379 | Opportunity listing cache |
-| App | 8080 | Spring Boot API (`--profile full` only) |
-
-Run the app inside Docker:
+### 4 · Load demo tokens (optional)
 
 ```bash
-docker compose --profile full up -d --build
+source scripts/demo-env.sh
 ```
 
-### Seeded demo users
+### End to end demo (5 minutes)
 
-All passwords: **`Password123!`**. Each investor wallet is seeded with **$3,000,000** (supports the full demo race at $25k/unit).
+1. Sign in as **issuer** → submit seeded opportunity for review  
+2. Sign in as **admin** → approve and publish  
+3. Open two browser windows as **investor1** and **investor2** → race for remaining units  
+4. Inspect portfolio and admin audit timeline  
+5. Mature and settle the opportunity  
 
-| Email | Role |
-|---|---|
-| `admin@tranche.local` | ADMIN |
-| `issuer@tranche.local` | ISSUER |
-| `investor1@tranche.local` | INVESTOR |
-| `investor2@tranche.local` | INVESTOR |
+Scripted walkthrough: [docs/demo-script.md](docs/demo-script.md) · curl recipes: [docs/demo-flow.md](docs/demo-flow.md)
 
-A demo opportunity (**Acme Q1 Receivables — Invoice #INV-2026-0142**) is seeded in `DRAFT` for the full lifecycle walkthrough.
+<br />
 
-**New user onboarding:** register at `/register`, verify email (OTP in dev logs), add demo funds, and get admin KYC/KYB approval. See **[docs/onboarding.md](docs/onboarding.md)**.
+## Demo accounts
 
-Load API tokens in any terminal: `source scripts/demo-env.sh`
+Password for all seeded users: **`Password123!`**
 
-### Tests
+| Email | Role | Notes |
+|:------|:-----|:------|
+| `admin@tranche.local` | Admin | Review queue, onboarding, lifecycle |
+| `issuer@tranche.local` | Issuer | KYB approved; demo opportunity in DRAFT |
+| `investor1@tranche.local` | Investor | $3M wallet; KYC approved |
+| `investor2@tranche.local` | Investor | $3M wallet; use for race demos |
 
-Integration tests spin up **MariaDB + Redis via Testcontainers** — no manual `tranche_test` setup required:
+New users can register at `/register` (email OTP appears in API logs during local dev).
 
-```bash
-./mvnw test
-```
+<br />
 
-CI runs the same suite on every push to `main` (see `.github/workflows/ci.yml`).
-
-Tests are skipped automatically when Docker is unavailable (`disabledWithoutDocker`).
-
----
-
-## Demo Flow
-
-See **[docs/demo-script.md](docs/demo-script.md)** for a timed interview walkthrough (UI-first).
-
-See **[docs/demo-flow.md](docs/demo-flow.md)** for curl commands and a two-investor race walkthrough.
-
-Summary:
-
-1. Admin reviews and publishes the seeded opportunity.
-2. Two investors submit concurrent commitments.
-3. System allocates correctly — no overbooking, partial fills where needed.
-4. Portfolio positions update; audit timeline captures every step.
-5. Admin matures and settles the opportunity.
-
----
-
-## Documentation
+## Documentation map
 
 | Document | Contents |
-|---|---|
-| [docs/architecture.md](docs/architecture.md) | Module boundaries, layering, locking, outbox, caching, security |
-| [docs/implementation-plan.md](docs/implementation-plan.md) | Phased build order, milestones, acceptance criteria, risks |
-| [docs/api-contract.md](docs/api-contract.md) | REST endpoint sketch with request/response examples |
-| [docs/allocation-engine.md](docs/allocation-engine.md) | Commitment API, locking, idempotency, partial fills |
-| [docs/audit-and-outbox.md](docs/audit-and-outbox.md) | Audit query APIs and outbox poller |
-| [docs/non-functional-design.md](docs/non-functional-design.md) | Errors, validation, rate limits, caching, RBAC |
-| [docs/demo-script.md](docs/demo-script.md) | Timed interview demo (UI walkthrough) |
-| [docs/demo-flow.md](docs/demo-flow.md) | End-to-end demo with curl examples |
-| [docs/onboarding.md](docs/onboarding.md) | Register, email OTP, KYC/KYB, demo funds |
-| [docs/final-review-notes.md](docs/final-review-notes.md) | Strengths, tradeoffs, interview focus, production TODOs |
+|:---------|:---------|
+| [docs/architecture.md](docs/architecture.md) | Layering, locking, caching, security |
+| [docs/allocation-engine.md](docs/allocation-engine.md) | Commitment path deep dive |
+| [docs/audit-and-outbox.md](docs/audit-and-outbox.md) | Audit queries, outbox poller |
+| [docs/onboarding.md](docs/onboarding.md) | Register, OTP, KYC/KYB, demo funds |
+| [docs/demo-script.md](docs/demo-script.md) | Timed interview walkthrough |
+| [docs/demo-flow.md](docs/demo-flow.md) | curl race and idempotency recipes |
+| [docs/api-contract.md](docs/api-contract.md) | REST endpoint reference |
+| [docs/final-review-notes.md](docs/final-review-notes.md) | Tradeoffs and interview talking points |
+| [frontend/README.md](frontend/README.md) | UI workflows by role |
 
----
+<br />
 
-## Future Enhancements
+## Why this project exists
 
-- **Real payment gateway integration** — replace mock fund locking with actual payment rails
-- **Outbox consumer** — dedicated worker to deliver notifications via email/SMS/push
-- **Secondary market** — transfer allocated positions between investors
-- **Risk scoring service** — automated risk grade assignment
-- **Observability** — distributed tracing, metrics dashboards, structured logging
-- **Event sourcing for allocation** — full event replay for regulatory audit
----
+Invoice discounting is a credible fintech domain. The engineering story is universal: **how do you move inventory and money under contention without lying to anyone?**
 
-## License
+Tranche is my answer in code: pessimistic locks where they matter, idempotency where networks flake, audit logs where regulators ask, and tests that race threads because slides are not proof.
 
-MIT
+If you are reviewing this repository for a role on a backend, platform, or fintech team: start with the [allocation engine doc](docs/allocation-engine.md), run `./mvnw test`, then spend five minutes on the [live UI](https://tranche-six.vercel.app/). The landing page is the pitch. The tests are the evidence.
+
+<br />
+
+<div align="center">
+
+**Built with care for correctness first, demo second, vanity never.**
+
+<br />
+
+MIT License · [vamshiganesh/Tranche](https://github.com/vamshiganesh/Tranche)
+
+</div>
