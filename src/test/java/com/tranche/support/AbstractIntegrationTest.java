@@ -91,14 +91,17 @@ public abstract class AbstractIntegrationTest {
     }
 
     protected void clearTransactionalData() {
-        portfolioPositionRepository.deleteAll();
-        allocationRepository.deleteAll();
-        investmentOrderRepository.deleteAll();
-        auditLogRepository.deleteAll();
-        outboxEventRepository.deleteAll();
-        opportunityRepository.findAll().stream()
-                .filter(opportunity -> !SeedUsers.DEMO_OPPORTUNITY_TITLE.equals(opportunity.getTitle()))
-                .forEach(opportunityRepository::delete);
+        new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+            portfolioPositionRepository.deleteAll();
+            allocationRepository.deleteAll();
+            investmentOrderRepository.deleteAll();
+            auditLogRepository.deleteAll();
+            outboxEventRepository.deleteAll();
+            opportunityRepository.findAll().stream()
+                    .filter(opportunity -> !SeedUsers.DEMO_OPPORTUNITY_TITLE.equals(opportunity.getTitle()))
+                    .forEach(opportunityRepository::delete);
+        });
+        entityManager.clear();
     }
 
     protected User requireUser(String email) {

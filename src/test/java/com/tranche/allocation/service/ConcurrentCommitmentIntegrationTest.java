@@ -2,6 +2,8 @@ package com.tranche.allocation.service;
 
 import com.tranche.allocation.dto.CommitmentRequest;
 import com.tranche.allocation.dto.CommitmentResult;
+import com.tranche.common.exception.BusinessException;
+import com.tranche.common.exception.ErrorCode;
 import com.tranche.common.security.UserPrincipal;
 import com.tranche.issuer.domain.Issuer;
 import com.tranche.issuer.repository.IssuerRepository;
@@ -16,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -30,6 +33,12 @@ class ConcurrentCommitmentIntegrationTest extends AbstractIntegrationTest {
     private static final int TOTAL_UNITS = 100;
     private static final int THREADS = 20;
     private static final int UNITS_PER_REQUEST = 10;
+
+    private static final Set<ErrorCode> EXPECTED_OVER_SUBSCRIPTION_REJECTIONS = Set.of(
+            ErrorCode.OPPORTUNITY_NOT_LIVE,
+            ErrorCode.INSUFFICIENT_UNITS,
+            ErrorCode.BELOW_MINIMUM_LOT
+    );
 
     @Autowired
     private AllocationEngine allocationEngine;
@@ -62,9 +71,10 @@ class ConcurrentCommitmentIntegrationTest extends AbstractIntegrationTest {
     void concurrentCommitmentsNeverOverAllocate() throws Exception {
         ExecutorService executor = Executors.newFixedThreadPool(THREADS);
         CountDownLatch startGate = new CountDownLatch(1);
-        List<Future<CommitmentResult>> futures = new ArrayList<>();
-        AtomicInteger successes = new AtomicInteger();
-        AtomicInteger failures = new AtomicInteger();
+        List<Future<?>> futures = new ArrayList<>();
+        AtomicInteger allocatedResponses = new AtomicInteger();
+        AtomicInteger expectedRejections = new AtomicInteger();
+        AtomicInteger unexpectedFailures = new AtomicInteger();
 
         for (int i = 0; i < THREADS; i++) {
             UserPrincipal investor = investors.get(i % investors.size());
@@ -84,11 +94,18 @@ class ConcurrentCommitmentIntegrationTest extends AbstractIntegrationTest {
                             investor
                     );
                     if (result.response().unitsAllocated() > 0) {
-                        successes.incrementAndGet();
+                        allocatedResponses.incrementAndGet();
                     }
                     return result;
+                } catch (BusinessException ex) {
+                    if (EXPECTED_OVER_SUBSCRIPTION_REJECTIONS.contains(ex.getCode())) {
+                        expectedRejections.incrementAndGet();
+                        return null;
+                    }
+                    unexpectedFailures.incrementAndGet();
+                    throw ex;
                 } catch (Exception ex) {
-                    failures.incrementAndGet();
+                    unexpectedFailures.incrementAndGet();
                     throw ex;
                 }
             }));
@@ -96,7 +113,7 @@ class ConcurrentCommitmentIntegrationTest extends AbstractIntegrationTest {
 
         startGate.countDown();
 
-        for (Future<CommitmentResult> future : futures) {
+        for (Future<?> future : futures) {
             future.get();
         }
         executor.shutdown();
@@ -104,6 +121,7 @@ class ConcurrentCommitmentIntegrationTest extends AbstractIntegrationTest {
         Opportunity updated = opportunityRepository.findById(opportunityId).orElseThrow();
         int totalAllocated = allocationRepository.sumUnitsByOpportunityId(opportunityId);
 
+        assertThat(unexpectedFailures.get()).isZero();
         assertThat(totalAllocated).isLessThanOrEqualTo(TOTAL_UNITS);
         assertThat(updated.getRemainingUnits()).isEqualTo(TOTAL_UNITS - totalAllocated);
         assertThat(totalAllocated + updated.getRemainingUnits()).isEqualTo(TOTAL_UNITS);
@@ -111,7 +129,8 @@ class ConcurrentCommitmentIntegrationTest extends AbstractIntegrationTest {
         long confirmedOrders = investmentOrderRepository.findAll().stream()
                 .filter(order -> order.getUnitsAllocated() > 0)
                 .count();
-        assertThat(confirmedOrders).isEqualTo(successes.get());
-        assertThat(failures.get()).isZero();
+        assertThat(confirmedOrders).isEqualTo(allocatedResponses.get());
+        assertThat(allocatedResponses.get()).isGreaterThan(0);
+        assertThat(allocatedResponses.get() + expectedRejections.get()).isEqualTo(THREADS);
     }
 }

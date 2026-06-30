@@ -37,8 +37,7 @@ public interface InvestorProfileRepository extends JpaRepository<InvestorProfile
             UPDATE InvestorProfile p
             SET p.walletBalance = :balance,
                 p.lockedBalance = 0,
-                p.kycStatus = :approved,
-                p.version = p.version + 1
+                p.kycStatus = :approved
             """)
     void resetAllWalletsForTests(
             @Param("balance") java.math.BigDecimal balance,
