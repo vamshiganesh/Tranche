@@ -1,4 +1,7 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { applyDemoCredit } from '../api/investors'
+import { ApiClientError } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { formatCurrencyPrecise } from '../lib/format'
 
@@ -12,20 +15,38 @@ const issuerLinks = [
   { to: '/issuer/new', label: 'New opportunity' },
 ]
 
-
 const adminLinks = [
   { to: '/admin', label: 'Review queue' },
+  { to: '/admin/onboarding', label: 'Onboarding' },
   { to: '/admin/opportunities', label: 'All opportunities' },
 ]
 
 export function AppShell({ title }: { title: string }) {
-  const { user, logout } = useAuth()
+  const { user, logout, refreshUser } = useAuth()
   const navigate = useNavigate()
+  const [crediting, setCrediting] = useState(false)
 
   if (!user) return null
 
   const links =
     user.role === 'ADMIN' ? adminLinks : user.role === 'ISSUER' ? issuerLinks : investorLinks
+
+  const showDemoFunds =
+    user.role === 'INVESTOR' && (user.walletBalance ?? 0) <= 0
+
+  async function handleDemoCredit() {
+    setCrediting(true)
+    try {
+      await applyDemoCredit()
+      await refreshUser()
+    } catch (err) {
+      if (err instanceof ApiClientError) {
+        alert(err.message)
+      }
+    } finally {
+      setCrediting(false)
+    }
+  }
 
   return (
     <div className="app-shell">
@@ -67,11 +88,23 @@ export function AppShell({ title }: { title: string }) {
       <div className="main-area">
         <header className="topbar">
           <span className="topbar-title">{title}</span>
-          {user.role === 'INVESTOR' && user.walletBalance != null && (
-            <span className="wallet-pill">
-              Available {formatCurrencyPrecise(user.walletBalance)}
-            </span>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            {showDemoFunds && (
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                disabled={crediting}
+                onClick={handleDemoCredit}
+              >
+                {crediting ? 'Adding…' : 'Add demo funds'}
+              </button>
+            )}
+            {user.role === 'INVESTOR' && user.walletBalance != null && (
+              <span className="wallet-pill">
+                Available {formatCurrencyPrecise(user.walletBalance)}
+              </span>
+            )}
+          </div>
         </header>
         <main className="page-content">
           <Outlet />

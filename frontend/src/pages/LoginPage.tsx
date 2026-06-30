@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { ApiClientError } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 
@@ -15,9 +15,12 @@ const DEMO_PASSWORD = 'Password123!'
 export function LoginPage() {
   const { user, login, loading } = useAuth()
   const navigate = useNavigate()
-  const [email, setEmail] = useState('')
+  const location = useLocation()
+  const locationState = (location.state as { email?: string; verified?: boolean } | null) ?? {}
+  const [email, setEmail] = useState(locationState.email ?? '')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(locationState.verified ? 'Email verified. You can sign in.' : null)
   const [submitting, setSubmitting] = useState(false)
 
   if (!loading && user) {
@@ -39,6 +42,10 @@ export function LoginPage() {
       navigate(dest)
     } catch (err) {
       if (err instanceof ApiClientError) {
+        if (err.code === 'EMAIL_NOT_VERIFIED') {
+          navigate('/verify-email', { state: { email } })
+          return
+        }
         setError(err.message)
       } else {
         setError('Unable to sign in. Check that the API is running on port 8080.')
@@ -83,6 +90,7 @@ export function LoginPage() {
         <div className="login-form-wrap">
           <h2>Sign in</h2>
           <p className="subtitle">Access your workspace with seeded demo credentials.</p>
+          {success && <div className="alert alert-success">{success}</div>}
           {error && <div className="alert alert-error">{error}</div>}
           <form onSubmit={handleSubmit}>
             <div className="field">
@@ -128,6 +136,9 @@ export function LoginPage() {
               ))}
             </div>
           </div>
+          <p style={{ marginTop: '1.25rem', fontSize: '0.875rem', color: 'var(--ink-muted)' }}>
+            New here? <Link to="/register">Create an account</Link>
+          </p>
         </div>
       </section>
     </div>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { listOpportunities } from '../../api/opportunities'
 import type { OpportunitySummary } from '../../api/types'
+import { InvestorOnboardingBanner } from '../../components/InvestorOnboardingBanner'
 import { RiskBadge, StatusBadge } from '../../components/StatusBadge'
 import { formatCurrency, formatDate, formatPercent } from '../../lib/format'
 
