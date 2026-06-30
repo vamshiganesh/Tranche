@@ -58,11 +58,16 @@ public class IssuerProfileService {
         issuer.setRegistrationNumber(request.registrationNumber());
         issuerRepository.save(issuer);
 
-        return IssuerMapper.toResponse(issuer);
+        return IssuerMapper.toResponse(issuer, userPublicId);
     }
 
-    @Transactional
-    public IssuerProfileResponse resubmitProfile(UUID userPublicId, CreateIssuerProfileRequest request) {
+    @Transactional(readOnly = true)
+    public IssuerProfileResponse getProfile(UUID userPublicId) {
+        Issuer issuer = issuerRepository.findByUser_PublicId(userPublicId)
+                .orElseThrow(() -> new ResourceNotFoundException("Issuer profile not found"));
+        return IssuerMapper.toResponse(issuer, userPublicId);
+    }
+}
         User user = userRepository.findByPublicId(userPublicId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 

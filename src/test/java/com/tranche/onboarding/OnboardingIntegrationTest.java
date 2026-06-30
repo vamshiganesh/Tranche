@@ -221,13 +221,10 @@ class OnboardingIntegrationTest extends AbstractHttpIntegrationTest {
                 Map.class
         );
 
-        ResponseEntity<Map> resubmit = restTemplate.exchange(
-                baseUrl() + "/api/v1/issuers/profile",
-                org.springframework.http.HttpMethod.PUT,
-                new org.springframework.http.HttpEntity<>(
-                        Map.of("companyName", "Fixed Corp", "registrationNumber", "REG-FIX"),
-                        bearerHeaders(token)
-                ),
+        ResponseEntity<Map> resubmit = postJson(
+                "/api/v1/issuers/profile/resubmit",
+                token,
+                Map.of("companyName", "Fixed Corp", "registrationNumber", "REG-FIX"),
                 Map.class
         );
         assertThat(resubmit.getStatusCode()).isEqualTo(HttpStatus.OK);
