@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { createIssuerProfile } from '../api/onboarding'
+import { createIssuerProfile } from '../api/issuers'
 import { ApiClientError } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 

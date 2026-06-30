@@ -1,16 +1,5 @@
 import { apiRequest } from './client'
-import type { IssuerProfile, VerificationStatus } from './types'
-
-export function getIssuerProfile() {
-  return apiRequest<IssuerProfile>('/issuers/profile')
-}
-
-export function createIssuerProfile(companyName: string, registrationNumber?: string) {
-  return apiRequest<IssuerProfile>('/issuers/profile', {
-    method: 'POST',
-    body: { companyName, registrationNumber: registrationNumber || null },
-  })
-}
+import type { VerificationStatus } from './types'
 
 export interface PendingInvestor {
   userId: string
