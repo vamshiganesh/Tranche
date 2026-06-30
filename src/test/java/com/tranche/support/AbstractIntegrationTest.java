@@ -16,6 +16,7 @@ import com.tranche.notification.repository.OutboxEventRepository;
 import com.tranche.opportunity.domain.Opportunity;
 import com.tranche.opportunity.repository.OpportunityRepository;
 import com.tranche.portfolio.repository.PortfolioPositionRepository;
+import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -76,6 +77,9 @@ public abstract class AbstractIntegrationTest {
     @Autowired
     private PlatformTransactionManager transactionManager;
 
+    @Autowired
+    private EntityManager entityManager;
+
     protected void resetInvestorWallets() {
         new TransactionTemplate(transactionManager).executeWithoutResult(status ->
                 investorProfileRepository.resetAllWalletsForTests(
@@ -83,6 +87,7 @@ public abstract class AbstractIntegrationTest {
                         VerificationStatus.APPROVED
                 )
         );
+        entityManager.clear();
     }
 
     protected void clearTransactionalData() {

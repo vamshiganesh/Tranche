@@ -137,15 +137,6 @@ public class AllocationEngine {
             );
         }
 
-        InvestorProfile kycProfile = investorProfileRepository.findByUser_Id(investorPrincipal.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Investor profile not found"));
-        if (kycProfile.getKycStatus() != VerificationStatus.APPROVED) {
-            throw new BusinessException(
-                    ErrorCode.KYC_NOT_APPROVED,
-                    "Investor identity verification must be approved before committing funds"
-            );
-        }
-
         AllocationCalculator.validateRequestedAmount(
                 request.unitsRequested(),
                 opportunity.getUnitPrice(),
@@ -185,6 +176,12 @@ public class AllocationEngine {
         // Second lock: investor wallet. Always after opportunity lock.
         InvestorProfile profile = investorProfileRepository.findByUserIdForUpdate(investorPrincipal.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Investor profile not found"));
+        if (profile.getKycStatus() != VerificationStatus.APPROVED) {
+            throw new BusinessException(
+                    ErrorCode.KYC_NOT_APPROVED,
+                    "Investor identity verification must be approved before committing funds"
+            );
+        }
 
         Map<String, Object> walletBefore = InvestorWalletService.walletSnapshot(profile);
         try {
