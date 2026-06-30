@@ -1,9 +1,12 @@
 package com.tranche.investor.domain;
 
 import com.tranche.auth.domain.User;
+import com.tranche.common.domain.VerificationStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -40,6 +43,10 @@ public class InvestorProfile {
 
     @Column(nullable = false, length = 3, columnDefinition = "CHAR(3)")
     private String currency;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "kyc_status", nullable = false, columnDefinition = "ENUM('PENDING', 'APPROVED', 'REJECTED')")
+    private VerificationStatus kycStatus = VerificationStatus.PENDING;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -87,6 +94,14 @@ public class InvestorProfile {
 
     public void setCurrency(String currency) {
         this.currency = currency;
+    }
+
+    public VerificationStatus getKycStatus() {
+        return kycStatus;
+    }
+
+    public void setKycStatus(VerificationStatus kycStatus) {
+        this.kycStatus = kycStatus;
     }
 
     public Instant getCreatedAt() {
