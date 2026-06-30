@@ -13,8 +13,8 @@ export function createIssuerProfile(companyName: string, registrationNumber?: st
 }
 
 export function resubmitIssuerProfile(companyName: string, registrationNumber?: string) {
-  return apiRequest<IssuerProfile>('/issuers/profile', {
-    method: 'PUT',
+  return apiRequest<IssuerProfile>('/issuers/profile/resubmit', {
+    method: 'POST',
     body: { companyName, registrationNumber: registrationNumber || null },
   })
 }

@@ -34,6 +34,12 @@ public class IssuerController {
 
     @PutMapping("/profile")
     @PreAuthorize("hasRole('ISSUER')")
+    public IssuerProfileResponse resubmitProfilePut(@Valid @RequestBody CreateIssuerProfileRequest request) {
+        return issuerProfileService.resubmitProfile(SecurityUtils.requireCurrentPublicId(), request);
+    }
+
+    @PostMapping("/profile/resubmit")
+    @PreAuthorize("hasRole('ISSUER')")
     public IssuerProfileResponse resubmitProfile(@Valid @RequestBody CreateIssuerProfileRequest request) {
         return issuerProfileService.resubmitProfile(SecurityUtils.requireCurrentPublicId(), request);
     }

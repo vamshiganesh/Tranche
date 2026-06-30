@@ -76,6 +76,12 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND, "Resource not found");
     }
 
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
+        String message = "HTTP method " + ex.getMethod() + " is not supported for this endpoint";
+        return buildResponse(HttpStatus.METHOD_NOT_ALLOWED, ErrorCode.VALIDATION_ERROR, message);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpected(Exception ex) {
         log.error("Unexpected error [correlationId={}]", CorrelationIdHolder.get(), ex);
