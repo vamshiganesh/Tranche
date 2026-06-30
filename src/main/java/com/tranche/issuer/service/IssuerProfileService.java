@@ -1,9 +1,16 @@
 package com.tranche.issuer.service;
 
+import com.tranche.audit.domain.AuditActions;
+import com.tranche.audit.domain.AuditActorRole;
+import com.tranche.audit.domain.AuditEntityTypes;
+import com.tranche.audit.service.AuditService;
 import com.tranche.auth.domain.User;
 import com.tranche.auth.repository.UserRepository;
 import com.tranche.common.domain.Role;
+import com.tranche.common.domain.VerificationStatus;
+import com.tranche.common.exception.BusinessException;
 import com.tranche.common.exception.ConflictException;
+import com.tranche.common.exception.ErrorCode;
 import com.tranche.common.exception.ForbiddenException;
 import com.tranche.common.exception.ResourceNotFoundException;
 import com.tranche.issuer.domain.Issuer;
@@ -13,6 +20,7 @@ import com.tranche.issuer.repository.IssuerRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -20,10 +28,16 @@ public class IssuerProfileService {
 
     private final IssuerRepository issuerRepository;
     private final UserRepository userRepository;
+    private final AuditService auditService;
 
-    public IssuerProfileService(IssuerRepository issuerRepository, UserRepository userRepository) {
+    public IssuerProfileService(
+            IssuerRepository issuerRepository,
+            UserRepository userRepository,
+            AuditService auditService
+    ) {
         this.issuerRepository = issuerRepository;
         this.userRepository = userRepository;
+        this.auditService = auditService;
     }
 
     @Transactional
