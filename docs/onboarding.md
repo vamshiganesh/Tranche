@@ -40,7 +40,7 @@ flowchart LR
 1. **Register** with `role: ISSUER`, verify email, sign in.
 2. **Company profile** — wizard at `/issuer/onboarding` → `POST /api/v1/issuers/profile`.
 3. **KYB** — `verificationStatus: PENDING` until admin approves on the onboarding queue.
-4. **If rejected** — update via `PUT /api/v1/issuers/profile` (resets to `PENDING`, re-enters admin queue).
+4. **If rejected** — `POST /api/v1/issuers/profile/resubmit` (resets to `PENDING`, re-enters admin queue).
 5. **Create opportunity** — blocked until `APPROVED`. Per-opportunity admin review is unchanged.
 
 ## Admin onboarding API
