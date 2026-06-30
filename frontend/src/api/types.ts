@@ -1,5 +1,7 @@
 export type Role = 'ADMIN' | 'ISSUER' | 'INVESTOR'
 
+export type VerificationStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
+
 export interface ApiError {
   error: {
     code: string
@@ -24,7 +26,25 @@ export interface LoginResponse {
 }
 
 export interface CurrentUser extends User {
+  emailVerified: boolean
   walletBalance?: number
+  kycStatus?: VerificationStatus | null
+  hasIssuerProfile?: boolean
+  issuerVerificationStatus?: VerificationStatus | null
+}
+
+export interface RegisterResponse extends User {
+  createdAt: string
+  emailVerificationRequired: boolean
+  devVerificationCode?: string | null
+}
+
+export interface IssuerProfile {
+  id: number
+  companyName: string
+  registrationNumber: string | null
+  userId: string
+  verificationStatus: VerificationStatus
 }
 
 export type OpportunityStatus =

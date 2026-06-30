@@ -109,6 +109,13 @@ class OnboardingIntegrationTest extends AbstractHttpIntegrationTest {
 
         String token = loginToken(email, password);
 
+        postJson(
+                "/api/v1/issuers/profile",
+                token,
+                Map.of("companyName", "Startup Ltd", "registrationNumber", "REG-NEW"),
+                Map.class
+        );
+
         ResponseEntity<Map> blockedCreate = postJson(
                 "/api/v1/opportunities",
                 token,
@@ -125,13 +132,6 @@ class OnboardingIntegrationTest extends AbstractHttpIntegrationTest {
                 Map.class
         );
         assertThat(blockedCreate.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-
-        postJson(
-                "/api/v1/issuers/profile",
-                token,
-                Map.of("companyName", "Startup Ltd", "registrationNumber", "REG-NEW"),
-                Map.class
-        );
 
         String adminToken = loginToken(SeedUsers.ADMIN_EMAIL, SeedUsers.PASSWORD);
         ResponseEntity<List> pending = restTemplate.exchange(
@@ -191,6 +191,6 @@ class OnboardingIntegrationTest extends AbstractHttpIntegrationTest {
                 Map.of("email", email, "password", "Password123!"),
                 Map.class
         );
-        assertThat(login.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        assertThat(login.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 }

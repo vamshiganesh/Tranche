@@ -94,13 +94,14 @@ public class GlobalExceptionHandler {
 
     private HttpStatus mapStatus(ErrorCode code) {
         return switch (code) {
-            case VALIDATION_ERROR, OPPORTUNITY_NOT_EDITABLE, MISSING_IDEMPOTENCY_KEY -> HttpStatus.BAD_REQUEST;
+            case VALIDATION_ERROR, OPPORTUNITY_NOT_EDITABLE, MISSING_IDEMPOTENCY_KEY,
+                    INVALID_VERIFICATION_CODE -> HttpStatus.BAD_REQUEST;
             case INVALID_CREDENTIALS, UNAUTHORIZED -> HttpStatus.UNAUTHORIZED;
-            case FORBIDDEN, INVALID_ROLE -> HttpStatus.FORBIDDEN;
+            case FORBIDDEN, INVALID_ROLE, EMAIL_NOT_VERIFIED, DEMO_CREDIT_NOT_AVAILABLE -> HttpStatus.FORBIDDEN;
             case NOT_FOUND -> HttpStatus.NOT_FOUND;
             case CONFLICT, PROFILE_ALREADY_EXISTS, INVALID_STATE_TRANSITION -> HttpStatus.CONFLICT;
-            case OPPORTUNITY_NOT_LIVE, INSUFFICIENT_UNITS, INSUFFICIENT_FUNDS, BELOW_MINIMUM_LOT ->
-                    HttpStatus.UNPROCESSABLE_ENTITY;
+            case OPPORTUNITY_NOT_LIVE, INSUFFICIENT_UNITS, INSUFFICIENT_FUNDS, BELOW_MINIMUM_LOT,
+                    KYC_NOT_APPROVED, KYB_NOT_APPROVED -> HttpStatus.UNPROCESSABLE_ENTITY;
             case RATE_LIMIT_EXCEEDED -> HttpStatus.TOO_MANY_REQUESTS;
             default -> HttpStatus.INTERNAL_SERVER_ERROR;
         };

@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { fetchMe, login as apiLogin } from '../api/opportunities'
+import { fetchMe, login as apiLogin } from '../api/auth'
 import { getStoredToken, setStoredToken } from '../api/client'
 import type { CurrentUser } from '../api/types'
 
