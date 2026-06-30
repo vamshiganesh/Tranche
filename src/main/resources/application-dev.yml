@@ -22,7 +22,11 @@ tranche:
     secret: dev-only-jwt-secret-key-minimum-32-characters-long
     expiration-ms: 86400000
   investor:
-    default-wallet-balance: 100000
+    default-wallet-balance: 0
+    demo-credit-enabled: true
+    demo-credit-amount: 3000000
+  onboarding:
+    expose-verification-code: true
 
 management:
   endpoint:

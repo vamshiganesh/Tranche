@@ -7,6 +7,7 @@ import com.tranche.audit.service.AuditService;
 import com.tranche.auth.domain.User;
 import com.tranche.auth.repository.UserRepository;
 import com.tranche.common.domain.Role;
+import com.tranche.common.domain.VerificationStatus;
 import com.tranche.common.dto.PageResponse;
 import com.tranche.common.exception.BusinessException;
 import com.tranche.common.exception.ErrorCode;
@@ -85,6 +86,13 @@ public class OpportunityService {
     @CacheEvict(cacheNames = OpportunityCacheNames.LIVE_LISTINGS, allEntries = true)
     public OpportunityResponse create(CreateOpportunityRequest request, UserPrincipal principal) {
         Issuer issuer = resolveIssuerForCreate(request, principal);
+        if (principal.getRole() == Role.ISSUER
+                && issuer.getVerificationStatus() != VerificationStatus.APPROVED) {
+            throw new BusinessException(
+                    ErrorCode.KYB_NOT_APPROVED,
+                    "Company verification must be approved before creating opportunities"
+            );
+        }
         validateBusinessRules(
                 request.faceValue(),
                 request.minimumLot(),

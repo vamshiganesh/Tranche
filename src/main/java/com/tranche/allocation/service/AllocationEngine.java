@@ -137,6 +137,15 @@ public class AllocationEngine {
             );
         }
 
+        InvestorProfile kycProfile = investorProfileRepository.findByUser_Id(investorPrincipal.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Investor profile not found"));
+        if (kycProfile.getKycStatus() != VerificationStatus.APPROVED) {
+            throw new BusinessException(
+                    ErrorCode.KYC_NOT_APPROVED,
+                    "Investor identity verification must be approved before committing funds"
+            );
+        }
+
         AllocationCalculator.validateRequestedAmount(
                 request.unitsRequested(),
                 opportunity.getUnitPrice(),

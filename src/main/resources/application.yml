@@ -62,6 +62,10 @@ tranche:
   investor:
     default-wallet-balance: ${INVESTOR_DEFAULT_WALLET_BALANCE:0}
     default-currency: USD
+    demo-credit-enabled: false
+    demo-credit-amount: 3000000
+  onboarding:
+    expose-verification-code: false
   outbox:
     polling-enabled: ${OUTBOX_POLLING_ENABLED:true}
     poll-interval-ms: ${OUTBOX_POLL_INTERVAL_MS:30000}

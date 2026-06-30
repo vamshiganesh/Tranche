@@ -13,7 +13,8 @@ final class IssuerMapper {
                 issuer.getId(),
                 issuer.getCompanyName(),
                 issuer.getRegistrationNumber(),
-                issuer.getUser().getPublicId()
+                issuer.getUser().getPublicId(),
+                issuer.getVerificationStatus()
         );
     }
 }
