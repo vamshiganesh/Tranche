@@ -143,8 +143,8 @@ a:hover { text-decoration: underline; }
   width: var(--sidebar-width);
   flex-shrink: 0;
   background: var(--ink);
-  --scrollbar-thumb: rgba(255, 255, 255, 0.18);
-  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.32);
+  --scrollbar-thumb: #6a6660;
+  --scrollbar-thumb-hover: #8a8680;
   color: #e8e4de;
   display: flex;
   flex-direction: column;
