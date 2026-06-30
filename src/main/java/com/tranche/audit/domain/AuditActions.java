@@ -23,7 +23,9 @@ public final class AuditActions {
     public static final String INVESTOR_KYC_REJECTED = "INVESTOR_KYC_REJECTED";
     public static final String ISSUER_KYB_APPROVED = "ISSUER_KYB_APPROVED";
     public static final String ISSUER_KYB_REJECTED = "ISSUER_KYB_REJECTED";
+    public static final String ISSUER_KYB_RESUBMITTED = "ISSUER_KYB_RESUBMITTED";
     public static final String DEMO_WALLET_CREDITED = "DEMO_WALLET_CREDITED";
+    public static final String INVESTOR_KYC_RESUBMITTED = "INVESTOR_KYC_RESUBMITTED";
 
     private AuditActions() {
     }

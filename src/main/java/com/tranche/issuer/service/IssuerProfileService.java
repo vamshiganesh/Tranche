@@ -61,6 +61,47 @@ public class IssuerProfileService {
         return IssuerMapper.toResponse(issuer);
     }
 
+    @Transactional
+    public IssuerProfileResponse resubmitProfile(UUID userPublicId, CreateIssuerProfileRequest request) {
+        User user = userRepository.findByPublicId(userPublicId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (user.getRole() != Role.ISSUER) {
+            throw new ForbiddenException("Only issuer accounts can update an issuer profile");
+        }
+
+        Issuer issuer = issuerRepository.findByUser_PublicId(userPublicId)
+                .orElseThrow(() -> new ResourceNotFoundException("Issuer profile not found"));
+
+        if (issuer.getVerificationStatus() != VerificationStatus.REJECTED) {
+            throw new BusinessException(
+                    ErrorCode.VALIDATION_ERROR,
+                    "Company profile can only be updated after rejection"
+            );
+        }
+
+        VerificationStatus before = issuer.getVerificationStatus();
+        issuer.setCompanyName(request.companyName().trim());
+        issuer.setRegistrationNumber(request.registrationNumber());
+        issuer.setVerificationStatus(VerificationStatus.PENDING);
+        issuerRepository.save(issuer);
+
+        auditService.log(
+                user,
+                AuditActorRole.ISSUER,
+                AuditActions.ISSUER_KYB_RESUBMITTED,
+                AuditEntityTypes.ISSUER,
+                issuer.getId(),
+                Map.of("verificationStatus", before.name()),
+                Map.of(
+                        "verificationStatus", VerificationStatus.PENDING.name(),
+                        "companyName", issuer.getCompanyName()
+                )
+        );
+
+        return IssuerMapper.toResponse(issuer);
+    }
+
     @Transactional(readOnly = true)
     public IssuerProfileResponse getProfile(UUID userPublicId) {
         Issuer issuer = issuerRepository.findByUser_PublicId(userPublicId)

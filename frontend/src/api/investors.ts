@@ -6,3 +6,7 @@ export function applyDemoCredit() {
     { method: 'POST', body: {} }
   )
 }
+
+export function resubmitKyc() {
+  return apiRequest<void>('/investors/kyc/resubmit', { method: 'POST', body: {} })
+}
