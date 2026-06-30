@@ -41,7 +41,6 @@ public class OutboxPoller {
     }
 
     @Scheduled(fixedDelayString = "${tranche.outbox.poll-interval-ms:30000}")
-    @Transactional
     public void scheduledPoll() {
         if (!outboxProperties.pollingEnabled()) {
             return;
