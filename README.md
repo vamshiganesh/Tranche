@@ -119,7 +119,7 @@ Every status transition and money-affecting action produces an immutable `audit_
 
 ---
 
-## Local Development
+## Local Development 
 
 ### Prerequisites
 
